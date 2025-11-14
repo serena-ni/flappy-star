@@ -2,13 +2,12 @@
 
 A starry twist on the classic game of Flappy Bird - set against the night sky. 
 
-Built for **Hack Club’s Milkyway** Event.  
+Built for **Hack Club**’s **Milkyway** Event.  
 
 ---
 
 ## Features
-- Hovering Star
-- Parallax Background
+- Parallax background
 - Nebula pipes
 - Shatter effect
 
