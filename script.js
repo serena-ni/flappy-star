@@ -1,8 +1,17 @@
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-
 canvas.width = 400;
 canvas.height = 600;
+
+const startScreen = document.getElementById('start-screen');
+const startButton = document.getElementById('start-button');
+const gameOverScreen = document.getElementById('game-over-screen');
+const restartButton = document.getElementById('restart-button');
+const scoreElement = document.getElementById('score');
+const finalScore = document.getElementById('final-score');
+
+let gameStarted = false;
+let gameActive = false;
 
 let star = {
   x: 80,
@@ -11,8 +20,10 @@ let star = {
   velocity: 0
 };
 
-const gravity = 0.5;
+const gravityBase = 0.15;   // Initial slow fall
+const gravityMax = 0.8;     // Maximum gravity
 const flapStrength = -8;
+let gravity = gravityBase;
 
 let pillars = [];
 const pillarWidth = 60;
@@ -21,7 +32,38 @@ let frame = 0;
 let score = 0;
 let gameOver = false;
 
-// create pillars
+// Start game button
+startButton.addEventListener('click', () => {
+  startScreen.style.display = 'none';
+  gameStarted = true;
+  gameActive = false; // wait until first flap
+  star.y = canvas.height / 2;
+  draw(); // show initial hover frame
+});
+
+// Restart button
+restartButton.addEventListener('click', () => {
+  gameOverScreen.style.display = 'none';
+  resetGame();
+  startScreen.style.display = 'none';
+  gameStarted = true;
+  gameActive = false;
+  draw();
+});
+
+// Reset game
+function resetGame() {
+  star.y = canvas.height / 2;
+  star.velocity = 0;
+  pillars = [];
+  frame = 0;
+  score = 0;
+  gameOver = false;
+  gravity = gravityBase;
+  scoreElement.innerText = score;
+}
+
+// Add pillars
 function addPillar() {
   const topHeight = Math.random() * (canvas.height - pillarGap - 50) + 30;
   pillars.push({
@@ -31,18 +73,41 @@ function addPillar() {
   });
 }
 
-// game loop
+// Draw frame without updating physics
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw star hovering
+  ctx.beginPath();
+  ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+  ctx.fillStyle = 'yellow';
+  ctx.fill();
+  ctx.closePath();
+
+  // Draw existing pillars
+  for (let p of pillars) {
+    ctx.fillStyle = '#8b00ff';
+    ctx.fillRect(p.x, 0, pillarWidth, p.top);
+    ctx.fillRect(p.x, canvas.height - p.bottom, pillarWidth, p.bottom);
+  }
+
+  requestAnimationFrame(draw);
+}
+
+// Game loop
 function update() {
-  if (gameOver) return;
+  if (!gameActive || gameOver) return;
 
   frame++;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // gravity & movement
+  // Gradually increase gravity until max
+  gravity = Math.min(gravityBase + frame * 0.0008, gravityMax);
+
   star.velocity += gravity;
   star.y += star.velocity;
 
-  // draw star
+  // Draw star
   ctx.beginPath();
   ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
   ctx.fillStyle = 'yellow';
@@ -52,7 +117,7 @@ function update() {
   // Add pillars
   if (frame % 90 === 0) addPillar();
 
-  // Draw pillars & check collisions
+  // Draw pillars & collisions
   for (let i = 0; i < pillars.length; i++) {
     let p = pillars[i];
     p.x -= 2;
@@ -68,34 +133,47 @@ function update() {
       (star.y - star.radius < p.top || star.y + star.radius > canvas.height - p.bottom)
     ) {
       gameOver = true;
+      endGame();
     }
 
-    // score
+    // Score
     if (!p.passed && p.x + pillarWidth < star.x) {
       score++;
-      document.getElementById('score').innerText = score;
+      scoreElement.innerText = score;
       p.passed = true;
     }
   }
 
-  // out of bounds
+  // Out of bounds
   if (star.y + star.radius > canvas.height || star.y - star.radius < 0) {
     gameOver = true;
+    endGame();
   }
 
   if (!gameOver) requestAnimationFrame(update);
 }
 
-function flap() {
-  star.velocity = flapStrength;
+// End game
+function endGame() {
+  gameOverScreen.style.display = 'flex';
+  finalScore.innerText = `Score: ${score}`;
+  gameActive = false;
 }
 
-// input
+// Flap function
+function flap() {
+  if (!gameStarted) return;
+
+  if (!gameActive) gameActive = true; // first flap starts physics
+
+  star.velocity = flapStrength;
+
+  if (gameActive) requestAnimationFrame(update);
+}
+
+// Input
 document.addEventListener('keydown', e => {
   if (e.code === 'Space') flap();
 });
 
 document.addEventListener('click', flap);
-
-// start game
-update();

@@ -1,4 +1,3 @@
-/* reset & basic body */
 body, html {
   margin: 0;
   padding: 0;
@@ -8,7 +7,7 @@ body, html {
   align-items: center;
   background: radial-gradient(circle at top, #0b1c2c, #000);
   overflow: hidden;
-  font-family: sans-serif;
+  font-family: 'Arial', sans-serif;
   color: white;
 }
 
@@ -30,4 +29,43 @@ body, html {
   transform: translateX(-50%);
   font-size: 32px;
   text-shadow: 0 0 10px #fff;
+}
+
+/* start / end screen */
+#start-screen, #game-over-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(11, 28, 44, 0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+#start-screen h1, #game-over-screen h1 {
+  font-size: 48px;
+  margin-bottom: 40px;
+  color: #ffeb3b;
+  text-shadow: 0 0 20px #ffeb3b;
+}
+
+#start-button, #restart-button {
+  padding: 15px 40px;
+  font-size: 24px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #8b00ff, #5a00aa);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  transition: all 0.2s ease;
+}
+
+#start-button:hover, #restart-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.5);
 }
