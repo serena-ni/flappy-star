@@ -1,18 +1,18 @@
 # Flappy Star
 
-**Guide your glowing star through drifting nebula pillars in this magical twist on Flappy Bird.**
+Guide your glowing star through drifting nebula pillars in this starry twist on Flappy Bird. Tap or press **space** to keep your star afloat while dodging cosmic obstacles. 
 
 ## How to Play
-- Tap or press **space** to keep your star afloat.
-- Avoid the nebula pillars to keep flying.
+- Tap or press **space** to stay afloat.
+- Avoid the nebula pillars.
 - Each pillar you pass increases your score.
-- Enjoy sparkling trails, twinkling stars, and shimmering nebula effects!
 
-## Files
-- `index.html` – main HTML file
-- `style.css` – game styling and animations
-- `script.js` – game logic
-- `assets/` – images, sounds, and other media
+## Features
+- Flappy Bird-style gameplay with a cosmic theme.
+- Glowing star with a sparkling trail.
+- Score counter.
+- Parallax starfield background.
+
 
 ## Credits
 - Game created by Serena Ni
