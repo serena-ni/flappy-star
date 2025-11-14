@@ -1,29 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flappy Star</title>
-  <link rel="stylesheet" href="style.css">
+
+  <!-- font: Quicksand -->
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="game-container">
-    <canvas id="game"></canvas>
-    <div id="score">0</div>
+    <canvas id="gameCanvas" width="420" height="640"></canvas>
 
     <!-- start screen -->
-    <div id="start-screen">
-      <h1>Flappy Star</h1>
-      <button id="start-button">Start</button>
+    <div id="start-screen" class="overlay">
+      <h1 class="title">flappy star</h1>
+
+      <!-- uiverse start button (theme tweaked) -->
+      <button class="btn-start">
+        <span>start</span>
+      </button>
+
+      <p class="hint">tap or press space to begin</p>
     </div>
 
-    <!-- end screen -->
-    <div id="game-over-screen" style="display:none;">
-      <h1>Game Over</h1>
-      <p id="final-score">Score: 0</p>
-      <button id="restart-button">Restart</button>
+    <!-- game over screen -->
+    <div id="game-over-screen" class="overlay hidden">
+      <h2 class="title small">game over</h2>
+      <p id="final-score"></p>
+      <button id="restart-btn" class="btn-start smaller">
+        <span>restart</span>
+      </button>
     </div>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>
