@@ -79,22 +79,34 @@ function addPillar() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // hover effect before first flap
+ // hover variables
+let hoverOffset = 0;
+let hoverDirection = 1;
+const hoverRange = 5;      // only ±5px
+const hoverSpeed = 0.2;    // very slow
+
+// draw frame (hover or active)
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
   if (!gameActive) {
-    star.y += 0.7 * star.hoverDirection; // slow up/down
-    if (star.y > canvas.height / 2 + 15 || star.y < canvas.height / 2 - 15) {
-      star.hoverDirection *= -1;
+    // gentle bobbing in place
+    hoverOffset += hoverSpeed * hoverDirection;
+    if (hoverOffset > hoverRange || hoverOffset < -hoverRange) {
+      hoverDirection *= -1;
     }
+  } else {
+    hoverOffset = 0; // reset offset once game starts
   }
 
-  // draw star
+  // draw star at center + hover offset
   ctx.beginPath();
-  ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+  ctx.arc(star.x, canvas.height / 2 + hoverOffset, star.radius, 0, Math.PI * 2);
   ctx.fillStyle = 'yellow';
   ctx.fill();
   ctx.closePath();
 
-  // draw existing pillars
+  // draw existing pillars (if any)
   for (let p of pillars) {
     ctx.fillStyle = '#8b00ff';
     ctx.fillRect(p.x, 0, pillarWidth, p.top);
