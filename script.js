@@ -17,11 +17,12 @@ let star = {
   x: 80,
   y: canvas.height / 2,
   radius: 12,
-  velocity: 0
+  velocity: 0,
+  hoverDirection: 1
 };
 
-const gravityBase = 0.15;   // Initial slow fall
-const gravityMax = 0.8;     // Maximum gravity
+const gravityBase = 0.05;   // very slow initial fall
+const gravityMax = 0.6;     // maximum gravity
 const flapStrength = -8;
 let gravity = gravityBase;
 
@@ -32,16 +33,16 @@ let frame = 0;
 let score = 0;
 let gameOver = false;
 
-// Start game button
+// start game button
 startButton.addEventListener('click', () => {
   startScreen.style.display = 'none';
   gameStarted = true;
-  gameActive = false; // wait until first flap
+  gameActive = false; // wait for first flap
   star.y = canvas.height / 2;
-  draw(); // show initial hover frame
+  draw(); // initial hover frame
 });
 
-// Restart button
+// restart button
 restartButton.addEventListener('click', () => {
   gameOverScreen.style.display = 'none';
   resetGame();
@@ -51,10 +52,11 @@ restartButton.addEventListener('click', () => {
   draw();
 });
 
-// Reset game
+// reset game
 function resetGame() {
   star.y = canvas.height / 2;
   star.velocity = 0;
+  star.hoverDirection = 1;
   pillars = [];
   frame = 0;
   score = 0;
@@ -63,7 +65,7 @@ function resetGame() {
   scoreElement.innerText = score;
 }
 
-// Add pillars
+// add pillars
 function addPillar() {
   const topHeight = Math.random() * (canvas.height - pillarGap - 50) + 30;
   pillars.push({
@@ -73,51 +75,59 @@ function addPillar() {
   });
 }
 
-// Draw frame without updating physics
+// draw frame (hover or active)
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw star hovering
+  // hover effect before first flap
+  if (!gameActive) {
+    star.y += 0.7 * star.hoverDirection; // slow up/down
+    if (star.y > canvas.height / 2 + 15 || star.y < canvas.height / 2 - 15) {
+      star.hoverDirection *= -1;
+    }
+  }
+
+  // draw star
   ctx.beginPath();
   ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
   ctx.fillStyle = 'yellow';
   ctx.fill();
   ctx.closePath();
 
-  // Draw existing pillars
+  // draw existing pillars
   for (let p of pillars) {
     ctx.fillStyle = '#8b00ff';
     ctx.fillRect(p.x, 0, pillarWidth, p.top);
     ctx.fillRect(p.x, canvas.height - p.bottom, pillarWidth, p.bottom);
   }
 
-  requestAnimationFrame(draw);
+  if (!gameActive && !gameOver) requestAnimationFrame(draw);
 }
 
-// Game loop
+// game loop
 function update() {
   if (!gameActive || gameOver) return;
 
   frame++;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Gradually increase gravity until max
-  gravity = Math.min(gravityBase + frame * 0.0008, gravityMax);
+  // gradually increase gravity over time (very slow)
+  gravity = Math.min(gravityBase + frame * 0.0002, gravityMax);
 
   star.velocity += gravity;
   star.y += star.velocity;
 
-  // Draw star
+  // draw star
   ctx.beginPath();
   ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
   ctx.fillStyle = 'yellow';
   ctx.fill();
   ctx.closePath();
 
-  // Add pillars
+  // add pillars
   if (frame % 90 === 0) addPillar();
 
-  // Draw pillars & collisions
+  // draw pillars & collisions
   for (let i = 0; i < pillars.length; i++) {
     let p = pillars[i];
     p.x -= 2;
@@ -126,7 +136,7 @@ function update() {
     ctx.fillRect(p.x, 0, pillarWidth, p.top);
     ctx.fillRect(p.x, canvas.height - p.bottom, pillarWidth, p.bottom);
 
-    // Collision
+    // collision
     if (
       star.x + star.radius > p.x &&
       star.x - star.radius < p.x + pillarWidth &&
@@ -136,7 +146,7 @@ function update() {
       endGame();
     }
 
-    // Score
+    // score
     if (!p.passed && p.x + pillarWidth < star.x) {
       score++;
       scoreElement.innerText = score;
@@ -144,7 +154,7 @@ function update() {
     }
   }
 
-  // Out of bounds
+  // out of bounds
   if (star.y + star.radius > canvas.height || star.y - star.radius < 0) {
     gameOver = true;
     endGame();
@@ -153,14 +163,14 @@ function update() {
   if (!gameOver) requestAnimationFrame(update);
 }
 
-// End game
+// end game
 function endGame() {
   gameOverScreen.style.display = 'flex';
   finalScore.innerText = `Score: ${score}`;
   gameActive = false;
 }
 
-// Flap function
+// flap function
 function flap() {
   if (!gameStarted) return;
 
@@ -171,7 +181,7 @@ function flap() {
   if (gameActive) requestAnimationFrame(update);
 }
 
-// Input
+// input
 document.addEventListener('keydown', e => {
   if (e.code === 'Space') flap();
 });
