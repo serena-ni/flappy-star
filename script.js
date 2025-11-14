@@ -1,194 +1,205 @@
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-canvas.width = 400;
-canvas.height = 600;
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-const startScreen = document.getElementById('start-screen');
-const startButton = document.getElementById('start-button');
-const gameOverScreen = document.getElementById('game-over-screen');
-const restartButton = document.getElementById('restart-button');
-const scoreElement = document.getElementById('score');
-const finalScore = document.getElementById('final-score');
+let starX = 100;
+let starY = canvas.height / 2;
+let starRadius = 12;
+let velocity = 0;
+let gravity = 0.08;
+let gravityGrowthRate = 0.00018;
+let maxGravity = 0.35;
 
 let gameStarted = false;
 let gameActive = false;
 
-let star = {
-  x: 80,
-  radius: 12,
-  velocity: 0
-};
-
-const gravityBase = 0.05;   // initial slow fall
-const gravityMax = 0.18;    // max slow gravity
-const flapStrength = -8;
-let gravity = gravityBase;
-
-let pillars = [];
-const pillarWidth = 60;
-const pillarGap = 150;
-let frame = 0;
 let score = 0;
-let gameOver = false;
+let pipes = [];
+let pipeSpeed = 2;
 
-// Hover variables
-let hoverOffset = 0;
-let hoverDirection = 1;
-const hoverRange = 5;      // ±5px
-const hoverSpeed = 0.2;    // very slow
+// === PARALLAX STAR BACKGROUND ===
+const bgStars = [
+  { x: 0, speed: 0.2, img: new Image() },
+  { x: 0, speed: 0.5, img: new Image() },
+  { x: 0, speed: 1.0, img: new Image() }
+];
 
-// Start game button
-startButton.addEventListener('click', () => {
-  startScreen.style.display = 'none';
+bgStars[0].img.src = "assets/stars-small.png";   // slow layer
+bgStars[1].img.src = "assets/stars-med.png";     // medium layer
+bgStars[2].img.src = "assets/stars-large.png";   // fast layer
+
+// bobbing animation before game starts
+let bobOffset = 0;
+let bobDirection = 1;
+
+// UI
+const startScreen = document.getElementById("start-screen");
+const gameOverScreen = document.getElementById("game-over-screen");
+const finalScoreText = document.getElementById("final-score");
+const restartBtn = document.getElementById("restart-btn");
+
+// start button
+document.getElementById("start-btn").addEventListener("click", () => {
+  startScreen.style.display = "none";
   gameStarted = true;
-  gameActive = false;
-  draw(); // show initial hover frame
+  gameActive = false; // game starts after first tap
 });
 
-// Restart button
-restartButton.addEventListener('click', () => {
-  gameOverScreen.style.display = 'none';
-  resetGame();
-  startScreen.style.display = 'none';
-  gameStarted = true;
-  gameActive = false;
-  draw();
+// controls
+window.addEventListener("keydown", (e) => {
+  if (e.code === "Space") flap();
 });
+window.addEventListener("mousedown", flap);
 
-// Reset game
-function resetGame() {
-  star.velocity = 0;
-  pillars = [];
-  frame = 0;
-  score = 0;
-  gameOver = false;
-  gravity = gravityBase;
-  scoreElement.innerText = score;
-  hoverOffset = 0;
-  hoverDirection = 1;
-}
-
-// Add pillars
-function addPillar() {
-  const topHeight = Math.random() * (canvas.height - pillarGap - 50) + 30;
-  pillars.push({
-    x: canvas.width,
-    top: topHeight,
-    bottom: canvas.height - topHeight - pillarGap
-  });
-}
-
-// Draw frame (hover or active)
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Gentle bobbing before first flap
-  if (!gameActive) {
-    hoverOffset += hoverSpeed * hoverDirection;
-    if (hoverOffset > hoverRange || hoverOffset < -hoverRange) {
-      hoverDirection *= -1;
-    }
-  } else {
-    hoverOffset = 0;
-  }
-
-  // Draw star
-  ctx.beginPath();
-  ctx.arc(star.x, canvas.height / 2 + hoverOffset, star.radius, 0, Math.PI * 2);
-  ctx.fillStyle = 'yellow';
-  ctx.fill();
-  ctx.closePath();
-
-  // Draw pillars
-  for (let p of pillars) {
-    ctx.fillStyle = '#8b00ff';
-    ctx.fillRect(p.x, 0, pillarWidth, p.top);
-    ctx.fillRect(p.x, canvas.height - p.bottom, pillarWidth, p.bottom);
-  }
-
-  if (!gameActive && !gameOver) requestAnimationFrame(draw);
-}
-
-// Game loop
-function update() {
-  if (!gameActive || gameOver) return;
-
-  frame++;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Gradually increase gravity (slow)
-  gravity = Math.min(gravityBase + frame * 0.00005, gravityMax);
-
-  star.velocity += gravity;
-  star.y += star.velocity;
-
-  // Draw star
-  ctx.beginPath();
-  ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-  ctx.fillStyle = 'yellow';
-  ctx.fill();
-  ctx.closePath();
-
-  // Add pillars
-  if (frame % 90 === 0) addPillar();
-
-  // Draw pillars & collisions
-  for (let i = 0; i < pillars.length; i++) {
-    let p = pillars[i];
-    p.x -= 2;
-
-    ctx.fillStyle = '#8b00ff';
-    ctx.fillRect(p.x, 0, pillarWidth, p.top);
-    ctx.fillRect(p.x, canvas.height - p.bottom, pillarWidth, p.bottom);
-
-    // Collision
-    if (
-      star.x + star.radius > p.x &&
-      star.x - star.radius < p.x + pillarWidth &&
-      (star.y - star.radius < p.top || star.y + star.radius > canvas.height - p.bottom)
-    ) {
-      gameOver = true;
-      endGame();
-    }
-
-    // Score
-    if (!p.passed && p.x + pillarWidth < star.x) {
-      score++;
-      scoreElement.innerText = score;
-      p.passed = true;
-    }
-  }
-
-  // Out of bounds
-  if (star.y + star.radius > canvas.height || star.y - star.radius < 0) {
-    gameOver = true;
-    endGame();
-  }
-
-  if (!gameOver) requestAnimationFrame(update);
-}
-
-// End game
-function endGame() {
-  gameOverScreen.style.display = 'flex';
-  finalScore.innerText = `Score: ${score}`;
-  gameActive = false;
-}
-
-// Flap function
 function flap() {
   if (!gameStarted) return;
 
-  if (!gameActive) gameActive = true;
+  if (!gameActive) {
+    gameActive = true;
+    velocity = -3.2;
+    return;
+  }
 
-  star.velocity = flapStrength;
-
-  if (gameActive) requestAnimationFrame(update);
+  velocity = -3.2;
 }
 
-// Input
-document.addEventListener('keydown', e => {
-  if (e.code === 'Space') flap();
-});
+// reset game
+function resetGame() {
+  starY = canvas.height / 2;
+  velocity = 0;
+  gravity = 0.08;
+  score = 0;
+  pipes = [];
+  gameOverScreen.style.display = "none";
+  startScreen.style.display = "flex";
 
-document.addEventListener('click', flap);
+  gameStarted = false;
+  gameActive = false;
+}
+
+// pipe generation
+function spawnPipe() {
+  const gap = 140;
+  const topHeight = Math.random() * (canvas.height - gap - 100) + 40;
+
+  pipes.push({
+    x: canvas.width,
+    top: topHeight,
+    bottom: topHeight + gap
+  });
+}
+
+setInterval(() => {
+  if (gameActive) spawnPipe();
+}, 1700);
+
+// parallax star drawing
+function drawParallaxStars() {
+  bgStars.forEach(layer => {
+    layer.x -= layer.speed;
+
+    if (layer.x <= -canvas.width) layer.x = 0;
+
+    ctx.drawImage(layer.img, layer.x, 0, canvas.width, canvas.height);
+    ctx.drawImage(layer.img, layer.x + canvas.width, 0, canvas.width, canvas.height);
+  });
+}
+
+// draw player star
+function drawStar() {
+  ctx.beginPath();
+  ctx.fillStyle = "#ffe98a";
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = "#fff7c2";
+  
+  ctx.arc(starX, starY, starRadius, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.shadowBlur = 0;
+}
+
+// main loop
+function update() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // PARALLAX BACKGROUND FIRST
+  drawParallaxStars();
+
+  if (!gameStarted) {
+    requestAnimationFrame(update);
+    return;
+  }
+
+  // hover animation before first flap
+  if (!gameActive) {
+    bobOffset += 0.015 * bobDirection;
+    if (bobOffset > 3 || bobOffset < -3) bobDirection *= -1;
+
+    const hoverY = (canvas.height / 2) + bobOffset;
+    starY = hoverY;
+
+    drawStar();
+    requestAnimationFrame(update);
+    return;
+  }
+
+  // gravity growth (slow)
+  gravity = Math.min(maxGravity, gravity + gravityGrowthRate);
+
+  // apply gravity
+  velocity += gravity;
+  starY += velocity;
+
+  // draw star after physics
+  drawStar();
+
+  // draw pipes + check collision
+  pipes.forEach((p, i) => {
+    p.x -= pipeSpeed;
+
+    ctx.fillStyle = "#8ac7ff";
+
+    // top pipe
+    ctx.fillRect(p.x, 0, 60, p.top);
+
+    // bottom pipe
+    ctx.fillRect(p.x, p.bottom, 60, canvas.height - p.bottom);
+
+    // score
+    if (p.x + 60 < starX && !p.scored) {
+      score++;
+      p.scored = true;
+      document.getElementById("score").innerText = score;
+    }
+
+    // collision
+    if (
+      starX + starRadius > p.x &&
+      starX - starRadius < p.x + 60 &&
+      (starY - starRadius < p.top || starY + starRadius > p.bottom)
+    ) {
+      endGame();
+    }
+
+    // remove pipes
+    if (p.x < -80) pipes.splice(i, 1);
+  });
+
+  // ground or ceiling collision
+  if (starY + starRadius > canvas.height || starY - starRadius < 0) {
+    endGame();
+  }
+
+  requestAnimationFrame(update);
+}
+
+function endGame() {
+  gameActive = false;
+  gameStarted = false;
+  finalScoreText.textContent = score;
+  gameOverScreen.style.display = "flex";
+}
+
+restartBtn.addEventListener("click", resetGame);
+
+update();
+
