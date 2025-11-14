@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap');
+
 body, html {
   margin: 0;
   padding: 0;
@@ -7,7 +9,7 @@ body, html {
   align-items: center;
   background: radial-gradient(circle at top, #0b1c2c, #000);
   overflow: hidden;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Quicksand', sans-serif;
   color: white;
 }
 
@@ -28,10 +30,10 @@ body, html {
   left: 50%;
   transform: translateX(-50%);
   font-size: 32px;
-  text-shadow: 0 0 10px #fff;
+  text-shadow: 0 0 15px #ffeb3b;
 }
 
-/* start / end screen */
+/* start/end screen */
 #start-screen, #game-over-screen {
   position: absolute;
   top: 0;
@@ -44,6 +46,7 @@ body, html {
   justify-content: center;
   align-items: center;
   z-index: 10;
+  text-align: center;
 }
 
 #start-screen h1, #game-over-screen h1 {
