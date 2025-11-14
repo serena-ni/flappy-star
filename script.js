@@ -19,8 +19,8 @@ let star = {
   velocity: 0
 };
 
-const gravityBase = 0.05;   // very slow initial fall
-const gravityMax = 0.6;     // maximum gravity
+const gravityBase = 0.05;   // initial slow fall
+const gravityMax = 0.18;    // max slow gravity
 const flapStrength = -8;
 let gravity = gravityBase;
 
@@ -41,7 +41,7 @@ const hoverSpeed = 0.2;    // very slow
 startButton.addEventListener('click', () => {
   startScreen.style.display = 'none';
   gameStarted = true;
-  gameActive = false; // wait for first flap
+  gameActive = false;
   draw(); // show initial hover frame
 });
 
@@ -89,7 +89,7 @@ function draw() {
       hoverDirection *= -1;
     }
   } else {
-    hoverOffset = 0; // reset once game starts
+    hoverOffset = 0;
   }
 
   // Draw star
@@ -116,8 +116,8 @@ function update() {
   frame++;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Gradually increase gravity over time (slow)
-  gravity = Math.min(gravityBase + frame * 0.0001, gravityMax);
+  // Gradually increase gravity (slow)
+  gravity = Math.min(gravityBase + frame * 0.00005, gravityMax);
 
   star.velocity += gravity;
   star.y += star.velocity;
@@ -179,7 +179,7 @@ function endGame() {
 function flap() {
   if (!gameStarted) return;
 
-  if (!gameActive) gameActive = true; // first flap starts physics
+  if (!gameActive) gameActive = true;
 
   star.velocity = flapStrength;
 
