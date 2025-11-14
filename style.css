@@ -1,0 +1,33 @@
+/* reset & basic body */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at top, #0b1c2c, #000);
+  overflow: hidden;
+  font-family: sans-serif;
+  color: white;
+}
+
+#game-container {
+  position: relative;
+}
+
+#game {
+  background: url('assets/bg-stars.png') repeat;
+  display: block;
+  border: 2px solid #fff;
+  border-radius: 8px;
+}
+
+#score {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 32px;
+  text-shadow: 0 0 10px #fff;
+}
