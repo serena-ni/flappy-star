@@ -190,6 +190,41 @@ function update() {
   }
 
   requestAnimationFrame(update);
+
+  // === SHOOTING STARS ===
+let shootingStars = [];
+let lastShootingStarTime = 0;
+
+function spawnShootingStar() {
+  // about once every 6–12 seconds
+  if (Date.now() - lastShootingStarTime < 6000 + Math.random() * 6000) return;
+  lastShootingStarTime = Date.now();
+
+  shootingStars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * (canvas.height * 0.5),
+    speed: 3 + Math.random() * 2,
+    alpha: 1
+  });
+}
+
+function drawShootingStars() {
+  shootingStars.forEach((s, i) => {
+    s.x += s.speed;
+    s.y += s.speed * 0.4;
+    s.alpha -= 0.01;
+
+    ctx.strokeStyle = `rgba(255,255,255,${s.alpha})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(s.x, s.y);
+    ctx.lineTo(s.x - 25, s.y - 8);
+    ctx.stroke();
+
+    if (s.alpha <= 0) shootingStars.splice(i, 1);
+  });
+}
+
 }
 
 function endGame() {
