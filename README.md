@@ -1,19 +1,34 @@
 # Flappy Star
 
-Guide your glowing star through drifting nebula pillars in this starry twist on Flappy Bird. Tap or press **space** to keep your star afloat while dodging cosmic obstacles. 
+A starry twist on the classic game of Flappy Bird - set against the night sky. 
 
-## How to Play
-- Tap or press **space** to stay afloat.
-- Avoid the nebula pillars.
-- Each pillar you pass increases your score.
+Built for **Hack Club’s Milkyway** Event.  
+
+---
 
 ## Features
-- Flappy Bird-style gameplay with a cosmic theme.
-- Glowing star with a sparkling trail.
-- Score counter.
-- Parallax starfield background.
+- Hovering Star
+- Parallax Background
+- Nebula pipes
+- Shatter effect
 
+---
+
+## How to Play
+- Tap or press **Space** to flap up  
+- Don’t hit the nebula pillars  
+- Collect points by passing through gaps
+
+---
 
 ## Credits
-- Game created by Serena Ni
-- Inspired by Flappy Bird
+
+- **Start Button:** Inspired by design from Uiverse user **Nawsome**  
+  (https://uiverse.io/Nawsome/tiny-chipmunk-51)
+- All gameplay, animations, and additional effects by Serena Ni.
+
+---
+
+## License
+MIT License  
+Feel free to remix, modify, or expand!
