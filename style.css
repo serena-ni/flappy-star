@@ -1,74 +1,103 @@
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap');
-
-body, html {
+/* global */
+body {
   margin: 0;
-  padding: 0;
-  height: 100%;
+  background: #000;
+  font-family: "Quicksand", sans-serif;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: radial-gradient(circle at top, #0b1c2c, #000);
-  overflow: hidden;
-  font-family: 'Quicksand', sans-serif;
-  color: white;
+  height: 100vh;
 }
 
+/* game container */
 #game-container {
   position: relative;
+  width: 420px;
+  height: 640px;
 }
 
-#game {
-  background: url('assets/bg-stars.png') repeat;
+/* canvas */
+#gameCanvas {
   display: block;
-  border: 2px solid #fff;
-  border-radius: 8px;
-}
-
-#score {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 32px;
-  text-shadow: 0 0 15px #ffeb3b;
-}
-
-/* start/end screen */
-#start-screen, #game-over-screen {
-  position: absolute;
-  top: 0;
-  left: 0;
+  background: #000;
   width: 100%;
   height: 100%;
-  background: rgba(11, 28, 44, 0.95);
+  border-radius: 14px;
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.18);
+}
+
+/* overlays */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  color: white;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 10;
   text-align: center;
 }
 
-#start-screen h1, #game-over-screen h1 {
+.hidden {
+  display: none;
+}
+
+/* title styling */
+.title {
   font-size: 48px;
-  margin-bottom: 40px;
-  color: #ffeb3b;
-  text-shadow: 0 0 20px #ffeb3b;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-shadow: 0 0 14px rgba(255,255,200,0.5);
 }
 
-#start-button, #restart-button {
-  padding: 15px 40px;
-  font-size: 24px;
+.title.small {
+  font-size: 36px;
+}
+
+/* hint text */
+.hint {
+  margin-top: 14px;
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+/* ===== UIVERSE BUTTON (tweaked for theme) ===== */
+
+.btn-start {
+  width: 140px;
+  height: 50px;
+  border-radius: 24px;
   border: none;
-  border-radius: 12px;
-  background: linear-gradient(145deg, #8b00ff, #5a00aa);
-  color: white;
+  background: linear-gradient(135deg, #fff7aa, #ffe07a, #ffd76b);
+  background-size: 200% 200%;
+  box-shadow: 0 0 12px rgba(255, 232, 150, 0.6);
+  transition: 0.3s ease;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  transition: all 0.2s ease;
+  margin-top: 24px;
 }
 
-#start-button:hover, #restart-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+.btn-start:hover {
+  background-position: right;
+  box-shadow: 0 0 18px rgba(255, 240, 180, 0.75);
+}
+
+.btn-start span {
+  font-size: 20px;
+  font-weight: 600;
+  color: #5a4900;
+}
+
+/* smaller restart version */
+.btn-start.smaller {
+  width: 130px;
+  height: 46px;
+}
+
+#final-score {
+  margin-top: 10px;
+  font-size: 20px;
+  opacity: 0.9;
 }
