@@ -10,7 +10,7 @@ body {
   height: 100vh;
 }
 
-/* container */
+/* game container */
 #game-container {
   position: relative;
   width: 420px;
@@ -20,136 +20,101 @@ body {
 /* canvas */
 #gameCanvas {
   display: block;
+  background: #000;
   width: 100%;
   height: 100%;
-  background: #000;
   border-radius: 14px;
-  box-shadow: 0 0 14px rgba(255,255,255,0.18);
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.18);
 }
 
 /* overlays */
 .overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.65);
+  background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(6px);
   color: white;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  text-align: center;
+  transition: opacity 0.3s ease;
 }
 
-.hidden {
-  display: none;
+.overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
-/* title */
+/* title styling */
 .title {
   font-size: 48px;
   font-weight: 600;
   letter-spacing: 2px;
   text-shadow: 0 0 14px rgba(255,255,200,0.5);
-  margin-bottom: 20px;
 }
 
 .title.small {
   font-size: 36px;
 }
 
+/* hint text */
+.start-hint {
+  margin-top: 14px;
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+/* input box */
+.name-input {
+  margin-top: 16px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 2px solid rgba(255, 220, 130, 0.6);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-family: "Quicksand", sans-serif;
+  font-size: 16px;
+  text-align: center;
+  outline: none;
+  backdrop-filter: blur(4px);
+}
+
 /* start button */
 .btn-start {
-  width: 150px;
-  height: 52px;
+  width: 140px;
+  height: 50px;
   border-radius: 24px;
   border: none;
   background: linear-gradient(135deg, #fff7aa, #ffe07a, #ffd76b);
   background-size: 200% 200%;
-  box-shadow: 0 0 12px rgba(255,232,150,0.6);
+  box-shadow: 0 0 12px rgba(255, 232, 150, 0.6);
   transition: 0.3s ease;
   cursor: pointer;
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 .btn-start:hover {
   background-position: right;
-  box-shadow: 0 0 18px rgba(255,240,180,0.75);
+  box-shadow: 0 0 18px rgba(255, 240, 180, 0.75);
 }
 
 .btn-start span {
   font-size: 20px;
+  font-weight: 600;
   color: #5a4900;
-  font-weight: 600;
 }
 
-.btn-start.smaller {
-  width: 130px;
-  height: 46px;
-}
-
-/* input box */
-.btn-input {
-  width: 200px;
-  height: 50px;
-  border-radius: 24px;
-  border: 2px solid #ffd76b;
-  background: rgba(255,255,255,0.15);
-  font-family: "Quicksand", sans-serif;
-  font-size: 20px;
-  font-weight: 600;
-  color: #fff8e8;
-  text-align: center;
-  padding: 0 14px;
-  margin-top: 10px;
-  outline: none;
-  transition: 0.3s ease;
-}
-
-.btn-input::placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-.btn-input:hover {
-  background: rgba(255,255,255,0.25);
-  box-shadow: 0 0 12px rgba(255,215,107,0.6);
-}
-
-/* leaderboard box */
-#leaderboardList {
-  margin: 20px 0;
-  font-size: 18px;
-  width: 100%;
-}
-
-.lb-row {
+/* end screen buttons container */
+.end-buttons {
   display: flex;
-  justify-content: space-between;
-  padding: 4px 0;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
 }
 
-.lb-num {
-  width: 30px;
-  text-align: left;
-}
-
-.lb-name {
-  flex-grow: 1;
-  padding-left: 10px;
-}
-
-.lb-score {
-  width: 50px;
-  text-align: right;
-}
-
-.lb-row.current {
-  color: #ffd76b;
-  font-weight: 700;
-}
-
-/* ==== END SCREEN BUTTONS ==== */
-
-/* PRIMARY button (restart) */
+/* PRIMARY button (Restart) */
 .end-btn-primary {
   width: 170px;
   height: 54px;
@@ -172,7 +137,7 @@ body {
   transform: translateY(-2px);
 }
 
-/* SECONDARY button (leaderboard) */
+/* SECONDARY button (leaderboard, close) */
 .end-btn-secondary {
   width: 150px;
   height: 50px;
@@ -195,10 +160,24 @@ body {
   transform: translateY(-1px);
 }
 
-/* spacing between the ending buttons */
-.end-buttons {
+/* leaderboard styling */
+#leaderboardList {
+  margin: 20px 0;
+  font-size: 18px;
+  width: 100%;
+}
+
+.lb-row {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 20px;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.lb-num { width: 30px; text-align: left; }
+.lb-name { flex-grow: 1; padding-left: 10px; }
+.lb-score { width: 50px; text-align: right; }
+
+.lb-row.current {
+  color: #ffd76b;
+  font-weight: 700;
 }

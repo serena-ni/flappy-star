@@ -1,55 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>flappy star</title>
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flappy Star</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
-  <div id="game-container">
+<div id="game-container">
+  <canvas id="gameCanvas"></canvas>
 
-    <!-- ===== START SCREEN ===== -->
-    <div id="start-screen" class="overlay">
-      <h1 class="title">flappy star</h1>
-
-      <input type="text" id="player-name" class="btn-input"
-             placeholder="Enter your name" maxlength="12"/>
-
-      <button id="start-btn" class="btn-start">
-        <span>start</span>
-      </button>
-    </div>
-
-    <!-- ===== game canvas ===== -->
-    <canvas id="gameCanvas" width="420" height="640"></canvas>
-
-    <!-- ===== game over screen ===== -->
-    <div id="game-over-screen" class="overlay hidden">
-      <h2 class="title small">game over</h2>
-      <div id="final-score"></div>
-
-    <div class="end-buttons">
-        <button id="restartBtn" class="end-btn-primary">restart</button>
-        <button id="viewLeaderboardBtn" class="end-btn-secondary">leaderboard</button>
-    </div>
-    </div>
-
-    <!-- leaderboard modal -->
-    <div id="leaderboard-modal" class="overlay hidden">
-      <div id="leaderboard-box">
-        <h3>leaderboard</h3>
-        <ul id="leaderboard-list"></ul>
-        <button id="close-leaderboard-btn" class="btn-start smaller">
-          <span>close</span>
-        </button>
-      </div>
-    </div>
-
+  <!-- Start Overlay -->
+  <div id="startOverlay" class="overlay">
+    <h1 class="title">flappy star</h1>
+    <p class="start-hint">tap or press space to start</p>
+    <input id="playerNameInput" type="text" placeholder="enter your name…" class="name-input" />
+    <button id="startBtn" class="btn-start"><span>start</span></button>
   </div>
 
-  <script src="script.js"></script>
+  <!-- End Overlay -->
+  <div id="endOverlay" class="overlay hidden">
+    <h1 class="title small">game Over</h1>
+    <p id="final-score"></p>
+    <div class="end-buttons">
+      <button id="restartBtn" class="end-btn-primary">restart</button>
+      <button id="viewLeaderboardBtn" class="end-btn-secondary">leaderboard</button>
+    </div>
+  </div>
+
+  <!-- Leaderboard Modal -->
+  <div id="leaderboardModal" class="overlay hidden">
+    <h2 class="title small">leaderboard</h2>
+    <div id="leaderboardList"></div>
+    <button id="closeLeaderboardBtn" class="end-btn-secondary">close</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>

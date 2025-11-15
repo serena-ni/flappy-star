@@ -1,299 +1,252 @@
+// ================= START =================
+const startOverlay = document.getElementById("startOverlay");
+const startBtn = document.getElementById("startBtn");
+const playerNameInput = document.getElementById("playerNameInput");
+
+let playerName = "Guest";
+let gameStarted = false;
+
+function startGame() {
+  if (gameStarted) return;
+  gameStarted = true;
+
+  const nameVal = playerNameInput.value.trim();
+  playerName = nameVal !== "" ? nameVal : "Guest";
+
+  startOverlay.classList.add("hidden");
+  resetGame();
+  requestAnimationFrame(gameLoop);
+}
+
+startBtn.onclick = () => startGame();
+
+document.addEventListener("keydown", (e) => {
+  if (!gameStarted && (e.code === "Space" || e.code === "Enter")) {
+    e.preventDefault();
+    startGame();
+  }
+});
+
+document.addEventListener("pointerdown", () => {
+  if (!gameStarted) startGame();
+});
+
+// ================= GAME STATE & ELEMENTS =================
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+canvas.width = 420;
+canvas.height = 640;
 
-// UI elements
-const startScreen = document.getElementById("start-screen");
-const gameOverScreen = document.getElementById("game-over-screen");
-const leaderboardModal = document.getElementById("leaderboard-modal");
-const restartBtn = document.getElementById("restart-btn");
-const startBtn = document.getElementById("start-btn");
-const viewLeaderboardBtn = document.getElementById("view-leaderboard-btn");
-const closeLeaderboardBtn = document.getElementById("close-leaderboard-btn");
-const nameInput = document.getElementById("player-name");
-const finalScoreText = document.getElementById("final-score");
-const leaderboardList = document.getElementById("leaderboard-list");
+// ================= STAR =================
+let star = {
+  x: 100,
+  y: canvas.height/2,
+  radius: 12,
+  vy: 0,
+  gravity: 0.15,
+  maxVy: 3,
+  bobOffset: 0,
+  bobDir: 1
+};
 
-// game constants
-let starX = 90;
-let starY = 280;
-let velocity = 0;
-let gravity = 0.22;
-let maxFallSpeed = 4.5;
-let jumpStrength = -5;
-let score = 0;
 let pipes = [];
-let gameRunning = false;
-let playerName = "";
-let idleFloat = 0;
-let idleSpeed = 0.02;
+let pipeGap = 140;
+let pipeSpacing = 280;
+let lastPipeX = 400;
+let score = 0;
 let particles = [];
-let stars = [];
-let frameCount = 0;
+let starsBackground = [];
+let shootingStars = [];
 
-// CREATE BACKGROUND STARS
-function initStars() {
-  stars = [];
-  const count = 70;
-  for (let i = 0; i < count; i++) {
-    stars.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      size: Math.random() * 2 + 1,
-      speed: Math.random() * 0.2 + 0.05
-    });
-  }
-}
-initStars();
-
-// CREATE PIPES 
-function createPipe() {
-  const gap = 160;
-  const topHeight = Math.random() * 250 + 50;
-  pipes.push({
-    x: canvas.width,
-    top: topHeight,
-    bottom: topHeight + gap
-  });
+// ================= INIT STARS =================
+for (let i=0;i<60;i++){
+  starsBackground.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2 +1});
 }
 
-// START GAME
-function startGame() {
-  playerName = nameInput.value.trim() || "Player";
-  startScreen.classList.add("hidden");
-  gameOverScreen.classList.add("hidden");
-  leaderboardModal.classList.add("hidden");
-
-  starX = 90;
-  starY = 280;
-  velocity = 0;
+// ================= GAME LOOP =================
+function resetGame(){
+  star.y = canvas.height/2;
+  star.vy = 0;
+  star.bobOffset = 0;
+  star.bobDir = 1;
   score = 0;
   pipes = [];
   particles = [];
-  idleFloat = 0;
-
-  gameRunning = true;
-  loop();
 }
 
-// RESTART
-restartBtn.onclick = startGame;
-startBtn.onclick = startGame;
+function gameLoop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawBackground();
+  updateStar();
+  updatePipes();
+  updateParticles();
+  drawStar();
 
-// start on space/click
-window.addEventListener("keydown", e => {
-  if (e.code === "Space" && gameRunning) jump();
-});
-canvas.addEventListener("click", () => {
-  if (gameRunning) jump();
-});
-
-// JUMP
-function jump() {
-  velocity = jumpStrength;
+  if(gameStarted) requestAnimationFrame(gameLoop);
 }
 
-// END GAME
-function endGame() {
-  gameRunning = false;
+function drawBackground(){
+  ctx.fillStyle="#000";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // particle explosion & shake
-  screenShake(10);
-
-  finalScoreText.textContent = `Score: ${score}`;
-
-  saveToLeaderboard();
-  gameOverScreen.classList.remove("hidden");
-}
-
-// SCREEN SHAKE
-function screenShake(amount) {
-  const shakeDuration = 300;
-  const start = Date.now();
-  function shake() {
-    const elapsed = Date.now() - start;
-    if (elapsed < shakeDuration) {
-      const dx = (Math.random() - 0.5) * amount;
-      const dy = (Math.random() - 0.5) * amount;
-      ctx.setTransform(1, 0, 0, 1, dx, dy);
-      requestAnimationFrame(shake);
-    } else {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-    }
-  }
-  shake();
-}
-
-// SAVE SCORE
-function saveToLeaderboard() {
-  let board = JSON.parse(localStorage.getItem("flappyStarLeaderboard") || "[]");
-
-  board.push({ name: playerName, score });
-  board.sort((a, b) => b.score - a.score);
-  board = board.slice(0, 5);
-
-  localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board));
-}
-
-// LEADERBOARD
-function populateLeaderboard() {
-  const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard") || "[]");
-  leaderboardList.innerHTML = "";
-
-  let addedCurrent = false;
-
-  board.forEach((entry, i) => {
-    const row = document.createElement("div");
-    row.className = "lb-row";
-
-    const num = document.createElement("div");
-    num.className = "lb-num";
-    num.textContent = i + 1;
-
-    const name = document.createElement("div");
-    name.className = "lb-name";
-    name.textContent = entry.name;
-
-    const sc = document.createElement("div");
-    sc.className = "lb-score";
-    sc.textContent = entry.score;
-
-    if (entry.name === playerName && entry.score === score && !addedCurrent) {
-      row.classList.add("current");
-      addedCurrent = true;
-    }
-
-    row.appendChild(num);
-    row.appendChild(name);
-    row.appendChild(sc);
-    leaderboardList.appendChild(row);
+  starsBackground.forEach(s=>{
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle="#fff";
+    ctx.fill();
   });
+}
 
-  // if run isn't in top 5, show your own entry
-  if (!addedCurrent) {
-    const row = document.createElement("div");
-    row.className = "lb-row current";
+function updateStar(){
+  if(!gameStarted){
+    star.bobOffset += 0.5*star.bobDir;
+    if(star.bobOffset>4 || star.bobOffset<-4) star.bobDir*=-1;
+    star.y = canvas.height/2 + star.bobOffset;
+    return;
+  }
 
-    const num = document.createElement("div");
-    num.className = "lb-num";
-    num.textContent = "—";
+  star.vy += star.gravity;
+  if(star.vy>star.maxVy) star.vy = star.maxVy;
+  star.y += star.vy;
 
-    const name = document.createElement("div");
-    name.className = "lb-name";
-    name.textContent = playerName;
-
-    const sc = document.createElement("div");
-    sc.className = "lb-score";
-    sc.textContent = score;
-
-    row.appendChild(num);
-    row.appendChild(name);
-    row.appendChild(sc);
-
-    leaderboardList.appendChild(row);
+  // collision with bottom
+  if(star.y+star.radius>canvas.height){
+    createExplosion(star.x, star.y);
+    endGame();
   }
 }
 
+function drawStar(){
+  ctx.beginPath();
+  ctx.arc(star.x, star.y, star.radius, 0, Math.PI*2);
+  ctx.fillStyle="#ffeb8a";
+  ctx.fill();
+}
 
-// PARTICLES
-function addParticles(x, y, count, size) {
-  for (let i = 0; i < count; i++) {
+function updatePipes(){
+  if(pipes.length==0 || pipes[pipes.length-1].x<canvas.width-pipeSpacing){
+    let topH = Math.random()*(canvas.height/2) + 60;
+    pipes.push({x:canvas.width, top:topH, bottom:canvas.height-topH-pipeGap});
+  }
+
+  pipes.forEach((p,i)=>{
+    p.x -= 2;
+    ctx.fillStyle="#33aaff";
+    ctx.fillRect(p.x,0,40,p.top);
+    ctx.fillRect(p.x,canvas.height-p.bottom,40,p.bottom);
+
+    if(star.x+star.radius>p.x && star.x-star.radius<p.x+40){
+      if(star.y-star.radius<p.top || star.y+star.radius>canvas.height-p.bottom){
+        createExplosion(star.x, star.y);
+        shakeScreen();
+        endGame();
+      }
+    }
+
+    if(p.x+40<0) pipes.splice(i,1);
+    if(p.x+40<star.x && !p.passed){score++; p.passed=true;}
+  });
+}
+
+function createExplosion(x,y){
+  for(let i=0;i<15;i++){
     particles.push({
-      x,
-      y,
-      vx: (Math.random() - 0.5) * 2,
-      vy: (Math.random() - 0.5) * 2,
-      size: size,
-      life: 30
+      x:x,
+      y:y,
+      vx:(Math.random()-0.5)*4,
+      vy:(Math.random()-0.5)*4,
+      r: Math.random()*3+1,
+      life:30
     });
   }
 }
 
-// RARE SPARK BONUS
-function sparkBonus(x, y) {
-  addParticles(x, y, 40, 4);
+function updateParticles(){
+  particles.forEach((p,i)=>{
+    p.x+=p.vx;
+    p.y+=p.vy;
+    p.life--;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle="#ffeb8a";
+    ctx.fill();
+    if(p.life<=0) particles.splice(i,1);
+  });
 }
 
-// UPDATE LOOP
-function loop() {
-  if (!gameRunning) return;
+function shakeScreen(){
+  canvas.style.transform = `translate(${Math.random()*6-3}px,${Math.random()*6-3}px)`;
+  setTimeout(()=>{canvas.style.transform="";},50);
+}
 
-  frameCount++;
+// ================= END / LEADERBOARD =================
+const endOverlay = document.getElementById("endOverlay");
+const restartBtn = document.getElementById("restartBtn");
+const viewLeaderboardBtn = document.getElementById("viewLeaderboardBtn");
+const finalScoreEl = document.getElementById("final-score");
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+const leaderboardModal = document.getElementById("leaderboardModal");
+const leaderboardList = document.getElementById("leaderboardList");
+const closeLeaderboardBtn = document.getElementById("closeLeaderboardBtn");
 
-  // PARALLAX STARS
-  for (let s of stars) {
-    s.x -= s.speed;
-    if (s.x < 0) s.x = canvas.width;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(s.x, s.y, s.size, s.size);
-  }
+function endGame() {
+  gameStarted = false;
+  endOverlay.classList.remove("hidden");
+  finalScoreEl.textContent = `Score: ${score}`;
+  saveScore();
+}
 
-  // IDLE FLOAT IF NOT MOVING
-  if (Math.abs(velocity) < 0.01) {
-    idleFloat += idleSpeed;
-    starY = 280 + Math.sin(idleFloat) * 4;
-  } else {
-    // GRAVITY
-    velocity += gravity;
-    if (velocity > maxFallSpeed) velocity = maxFallSpeed;
-    starY += velocity;
-  }
+restartBtn.onclick = () => {
+  endOverlay.classList.add("hidden");
+  startOverlay.classList.remove("hidden");
+  playerNameInput.focus();
+  resetGame();
+};
 
-  // DRAW STAR
-  ctx.fillStyle = "#ffd76b";
-  ctx.beginPath();
-  ctx.arc(starX, starY, 14, 0, Math.PI * 2);
-  ctx.fill();
+viewLeaderboardBtn.onclick = () => {
+  populateLeaderboard();
+  leaderboardModal.classList.remove("hidden");
+};
 
-  // PARTICLES
-  particles.forEach((p, i) => {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.life--;
-    ctx.fillStyle = "rgba(255,220,150,0.8)";
-    ctx.fillRect(p.x, p.y, p.size, p.size);
-    if (p.life <= 0) particles.splice(i, 1);
+closeLeaderboardBtn.onclick = () => leaderboardModal.classList.add("hidden");
+
+function saveScore() {
+  const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
+  board.push({name:playerName, score});
+  board.sort((a,b)=>b.score-a.score);
+  localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board.slice(0,50)));
+}
+
+function populateLeaderboard() {
+  const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
+  leaderboardList.innerHTML = "";
+
+  let addedCurrent=false;
+
+  board.forEach((entry,i)=>{
+    const row=document.createElement("div");
+    row.className="lb-row";
+    const num=document.createElement("div");
+    num.className="lb-num"; num.textContent=i+1;
+    const name=document.createElement("div");
+    name.className="lb-name"; name.textContent=entry.name;
+    const sc=document.createElement("div");
+    sc.className="lb-score"; sc.textContent=entry.score;
+
+    if(entry.name===playerName && entry.score===score && !addedCurrent){
+      row.classList.add("current");
+      addedCurrent=true;
+    }
+    row.appendChild(num); row.appendChild(name); row.appendChild(sc);
+    leaderboardList.appendChild(row);
   });
 
-  // PIPE SPAWNING
-  if (frameCount % 120 === 0) createPipe();
-
-  // PIPES
-  for (let i = pipes.length - 1; i >= 0; i--) {
-    const pipe = pipes[i];
-    pipe.x -= 2;
-
-    // DRAW PIPES
-    ctx.fillStyle = "#85a6ff";
-    ctx.fillRect(pipe.x, 0, 60, pipe.top);
-    ctx.fillRect(pipe.x, pipe.bottom, 60, canvas.height - pipe.bottom);
-
-    // SCORE COUNT
-    if (pipe.x + 60 < starX && !pipe.passed) {
-      pipe.passed = true;
-      score++;
-
-      // tight gap bonus
-      if (pipe.bottom - pipe.top < 155) {
-        sparkBonus(starX, starY);
-      }
-    }
-
-    // REMOVE OLD PIPES
-    if (pipe.x < -60) pipes.splice(i, 1);
-
-    // COLLISION
-    if (
-      starX + 14 > pipe.x &&
-      starX - 14 < pipe.x + 60 &&
-      (starY - 14 < pipe.top || starY + 14 > pipe.bottom)
-    ) {
-      addParticles(starX, starY, 50, 3);
-      endGame();
-      return;
-    }
+  if(!addedCurrent){
+    const row=document.createElement("div"); row.className="lb-row current";
+    const num=document.createElement("div"); num.className="lb-num"; num.textContent="—";
+    const name=document.createElement("div"); name.className="lb-name"; name.textContent=playerName;
+    const sc=document.createElement("div"); sc.className="lb-score"; sc.textContent=score;
+    row.appendChild(num); row.appendChild(name); row.appendChild(sc);
+    leaderboardList.appendChild(row);
   }
-
-  requestAnimationFrame(loop);
 }
