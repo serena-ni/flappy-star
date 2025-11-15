@@ -16,33 +16,43 @@
       <h1 class="title">flappy star</h1>
 
       <input type="text" id="player-name" class="btn-input"
-             placeholder="enter your name" maxlength="12"/>
-             
-    <button id="start-btn" class="btn-start">
+             placeholder="Enter your name" maxlength="12"/>
+
+      <button id="start-btn" class="btn-start">
         <span>start</span>
-    </button>
+      </button>
     </div>
 
-    <!-- game canvas -->
-    <canvas id="gameCanvas"></canvas>
+    <!-- ===== game canvas ===== -->
+    <canvas id="gameCanvas" width="420" height="640"></canvas>
 
-    <!-- game over screen -->
-    <div id="gameOverScreen" class="hidden">
-        <h1>game over</h1>
-        <p id="finalScore"></p>
-        <button id="restartBtn">play again</button>
-        <button id="viewLeaderboardBtn">view leaderboard</button>
+    <!-- ===== game over screen ===== -->
+    <div id="game-over-screen" class="overlay hidden">
+      <h2 class="title small">game over</h2>
+      <div id="final-score"></div>
+
+      <button id="restart-btn" class="btn-start smaller">
+        <span>restart</span>
+      </button>
+
+      <button id="view-leaderboard-btn" class="btn-start smaller" style="margin-top:16px;">
+        <span>leaderboard</span>
+      </button>
     </div>
 
     <!-- leaderboard modal -->
-    <div id="leaderboardModal" class="hidden">
-        <div id="leaderboardBox">
-            <h2>leaderboard</h2>
-            <div id="leaderboardList"></div>
-            <button id="closeLeaderboardBtn">close</button>
-        </div>
+    <div id="leaderboard-modal" class="overlay hidden">
+      <div id="leaderboard-box">
+        <h3>leaderboard</h3>
+        <ul id="leaderboard-list"></ul>
+        <button id="close-leaderboard-btn" class="btn-start smaller">
+          <span>close</span>
+        </button>
+      </div>
     </div>
 
-    <script src="script.js"></script>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
