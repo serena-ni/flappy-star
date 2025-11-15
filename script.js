@@ -134,7 +134,7 @@ function saveToLeaderboard() {
   localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board));
 }
 
-// POPULATE LEADERBOARD
+// LEADERBOARD
 function populateLeaderboard() {
   const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard") || "[]");
   leaderboardList.innerHTML = "";
@@ -142,30 +142,57 @@ function populateLeaderboard() {
   let addedCurrent = false;
 
   board.forEach((entry, i) => {
-    const li = document.createElement("li");
-    li.textContent = `${i + 1}. ${entry.name}: ${entry.score}`;
+    const row = document.createElement("div");
+    row.className = "lb-row";
+
+    const num = document.createElement("div");
+    num.className = "lb-num";
+    num.textContent = i + 1;
+
+    const name = document.createElement("div");
+    name.className = "lb-name";
+    name.textContent = entry.name;
+
+    const sc = document.createElement("div");
+    sc.className = "lb-score";
+    sc.textContent = entry.score;
+
     if (entry.name === playerName && entry.score === score && !addedCurrent) {
-      li.classList.add("current");
+      row.classList.add("current");
       addedCurrent = true;
     }
-    leaderboardList.appendChild(li);
+
+    row.appendChild(num);
+    row.appendChild(name);
+    row.appendChild(sc);
+    leaderboardList.appendChild(row);
   });
 
+  // if run isn't in top 5, show your own entry
   if (!addedCurrent) {
-    const li = document.createElement("li");
-    li.textContent = `Your score: ${playerName} – ${score}`;
-    li.classList.add("current");
-    leaderboardList.appendChild(li);
+    const row = document.createElement("div");
+    row.className = "lb-row current";
+
+    const num = document.createElement("div");
+    num.className = "lb-num";
+    num.textContent = "—";
+
+    const name = document.createElement("div");
+    name.className = "lb-name";
+    name.textContent = playerName;
+
+    const sc = document.createElement("div");
+    sc.className = "lb-score";
+    sc.textContent = score;
+
+    row.appendChild(num);
+    row.appendChild(name);
+    row.appendChild(sc);
+
+    leaderboardList.appendChild(row);
   }
 }
 
-viewLeaderboardBtn.onclick = () => {
-  populateLeaderboard();
-  leaderboardModal.classList.remove("hidden");
-};
-
-closeLeaderboardBtn.onclick = () =>
-  leaderboardModal.classList.add("hidden");
 
 // PARTICLES
 function addParticles(x, y, count, size) {

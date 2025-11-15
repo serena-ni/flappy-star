@@ -115,20 +115,34 @@ body {
 }
 
 /* leaderboard box */
-#leaderboard-box {
-  background: rgba(0,0,0,0.85);
-  padding: 24px;
-  width: 300px;
-  border-radius: 16px;
-  text-align: center;
-}
-
-#leaderboard-box li {
-  margin: 6px 0;
+#leaderboardList {
+  margin: 20px 0;
   font-size: 18px;
+  width: 100%;
 }
 
-#leaderboard-box li.current {
+.lb-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.lb-num {
+  width: 30px;
+  text-align: left;
+}
+
+.lb-name {
+  flex-grow: 1;
+  padding-left: 10px;
+}
+
+.lb-score {
+  width: 50px;
+  text-align: right;
+}
+
+.lb-row.current {
   color: #ffd76b;
   font-weight: 700;
 }
