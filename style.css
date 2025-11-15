@@ -128,26 +128,57 @@ button:hover {
 /* RESTART BUTTON */
 #restartBtn {
   font-size: 20px;
-  padding: 12px 30px;
+  padding: 12px 36px; /* big and prominent */
   background: linear-gradient(145deg, #ffeb8a, #ffd700);
   color: #111;
   border-color: #ffd700;
-  box-shadow: 0 0 15px #ffd700;
+  border-radius: 12px;
   font-family: "Quicksand", sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 15px #ffd700;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-
 #restartBtn:hover {
   box-shadow: 0 0 20px #ffe680;
+  transform: translateY(-2px);
 }
 
-/* LEADERBOARD BUTTON */
+/* LEADERBOARD BUTTON (matches restart style, but darker) */
 #viewLeaderboardBtn {
   font-size: 18px;
-  padding: 12px 26px;
+  padding: 12px 36px;  /* bigger width for text */
   background: linear-gradient(145deg, #222, #111);
   color: #ffeb8a;
   border-color: gold;
+  border-radius: 12px;
   font-family: "Quicksand", sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 8px gold;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+#viewLeaderboardBtn:hover {
+  box-shadow: 0 0 14px #ffe680;
+  transform: translateY(-2px);
+}
+
+/* CLOSE BUTTON in leaderboard modal */
+#closeLeaderboardBtn {
+  font-size: 16px;
+  padding: 10px 28px;
+  background: linear-gradient(145deg, #222, #111);
+  color: #ffeb8a;
+  border-color: gold;
+  border-radius: 12px;
+  font-family: "Quicksand", sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 6px gold;
+}
+#closeLeaderboardBtn:hover {
+  box-shadow: 0 0 12px #ffe680;
+  transform: translateY(-2px);
 }
 
 /* LEADERBOARD MODAL */
@@ -182,17 +213,6 @@ button:hover {
 .lb-row.current {
   color: #fff;
   font-weight: 700;
-}
-
-/* Close leaderboard button */
-#closeLeaderboardBtn {
-  margin-top: 12px;
-  font-size: 16px;
-  padding: 10px 20px;
-  background: linear-gradient(145deg, #222, #111);
-  color: #ffeb8a;
-  border-color: gold;
-  font-family: "Quicksand", sans-serif;
 }
 
 /* SCORE DISPLAY */
