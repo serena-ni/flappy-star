@@ -30,16 +30,16 @@ let starsBackground = [];
 let shootingStars = [];
 let invulnerableFrames = 0;
 
-// star
+// player star
 let star = { x:100, y:canvas.height/2, radius:12, vy:0, gravity:0.12, maxVy:2.5, bobOffset:0, bobDir:1 };
 let _frameCount = 0;
 
-// initialize background star
+// initialize background stars
 for (let i=0;i<50;i++){
   starsBackground.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2+1});
 }
 
-// game function
+// game functions
 function resetGame(){
   star.y = canvas.height/2;
   star.vy = 0;
@@ -55,6 +55,7 @@ function resetGame(){
 function startGame(){
   if(gameStarted) return;
   gameStarted = true;
+  starFalling = true;
   _frameCount = 0;
   startOverlay.classList.add("hidden");
   endOverlay.classList.add("hidden");
@@ -66,14 +67,13 @@ function startGame(){
 
   resetGame();
   invulnerableFrames = 30; // short grace period
-  starFalling = true;
   requestAnimationFrame(gameLoop);
 }
 
-// start button handler
-startBtn.onclick = ()=> startGame();
+// only start button triggers game start
+startBtn.onclick = startGame;
 
-// ===== GAME LOOP =====
+// game loop
 function gameLoop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawBackground();
@@ -82,7 +82,6 @@ function gameLoop(){
   updateParticles();
   drawStar();
   scoreDisplay.textContent = score;
-  _frameCount++;
   if(invulnerableFrames>0) invulnerableFrames--;
   if(gameStarted) requestAnimationFrame(gameLoop);
 }
@@ -92,7 +91,7 @@ function drawBackground(){
   ctx.fillStyle="#000";
   ctx.fillRect(0,0,canvas.width,canvas.height);
   starsBackground.forEach(s=>{
-    s.x-=0.1;
+    s.x -= 0.1; 
     if(s.x<0) s.x=canvas.width;
     ctx.beginPath();
     ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
@@ -101,40 +100,45 @@ function drawBackground(){
   });
 }
 
-// star
+// player star logic
 function updateStar(){
   if(!starFalling){
-    star.bobOffset+=0.5*star.bobDir;
+    // hover before start
+    star.bobOffset += 0.5*star.bobDir;
     if(star.bobOffset>4||star.bobOffset<-4) star.bobDir*=-1;
     star.y = canvas.height/2 + star.bobOffset;
     return;
   }
 
-  star.vy+=star.gravity;
-  if(!isFinite(star.vy)) star.vy = 0;
-  if(!isFinite(star.y)) star.y = canvas.height/2;
+  star.vy += star.gravity;
+  if(!isFinite(star.vy)) star.vy=0;
+  if(!isFinite(star.y)) star.y=canvas.height/2;
   if(star.vy>star.maxVy) star.vy=star.maxVy;
-  star.y+=star.vy;
+  star.y += star.vy;
 
-  // trail based on velocity
-  let trailSize = star.vy*1.5+1;
-  particles.push({x:star.x, y:star.y, vx:(Math.random()-0.5)*0.2, vy:0, r:trailSize, life:20});
+  // trail
+  let trailSize = Math.max(1, star.vy*1.2);
+  particles.push({x:star.x, y:star.y, vx:(Math.random()-0.5)*0.3, vy:0, r:trailSize, life:15});
 
-  // rare shooting star
-  if(Math.random()<0.002) shootingStars.push({x:canvas.width, y:Math.random()*canvas.height/2, vx:-4, vy:0, r:3, life:60});
+  // shooting stars
+  if(Math.random()<0.002){
+    shootingStars.push({x:canvas.width, y:Math.random()*canvas.height/2, vx:-4, vy:0, r:3, life:60});
+  }
 
-  if(star.y+star.radius>canvas.height){
+  // bottom collision
+  if(star.y + star.radius > canvas.height){
     if(invulnerableFrames>0){
-      star.y = canvas.height - star.radius - 1;
+      star.y = canvas.height-star.radius-1;
       star.vy = 0;
     } else {
-      createExplosion(star.x,star.y);
+      createExplosion(star.x, star.y);
       shakeScreen();
       endGame();
     }
   }
 }
 
+// draw player star
 function drawStar(){
   ctx.beginPath();
   ctx.arc(star.x, star.y, star.radius,0,Math.PI*2);
@@ -158,13 +162,11 @@ function updatePipes(){
     ctx.fillRect(p.x,0,40,p.top);
     ctx.fillRect(p.x,canvas.height-p.bottom,40,p.bottom);
 
-    if(star.x+star.radius>p.x && star.x-star.radius<p.x+40){
-      if(invulnerableFrames<=0){
-        if(star.y-star.radius<p.top || star.y+star.radius>canvas.height-p.bottom){
-          createExplosion(star.x,star.y);
-          shakeScreen();
-          endGame();
-        }
+    if(starFalling && invulnerableFrames<=0 && star.x+star.radius>p.x && star.x-star.radius<p.x+40){
+      if(star.y-star.radius<p.top || star.y+star.radius>canvas.height-p.bottom){
+        createExplosion(star.x,star.y);
+        shakeScreen();
+        endGame();
       }
     }
 
@@ -181,46 +183,24 @@ function createExplosion(x,y){
 }
 
 function updateParticles(){
-  // create minimal trail behind star
-  if(starFalling){
-    particles.push({
-      x: star.x - star.radius/2,
-      y: star.y,
-      vx: -0.2,    // slight left drift
-      vy: 0,
-      r: 1.5,      // very small
-      life: 15
-    });
+  for(let i=particles.length-1;i>=0;i--){
+    let p = particles[i];
+    p.x += p.vx; p.y += p.vy; p.life--;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle="#ffeb8a";
+    ctx.fill();
+    if(p.life<=0) particles.splice(i,1);
   }
 
-  // update all particles
-  for(let i = particles.length - 1; i >= 0; i--){
-    const p = particles[i];
-    p.x += p.vx;
-    p.y += p.vy;
-    p.life--;
-
+  for(let i=shootingStars.length-1;i>=0;i--){
+    let s = shootingStars[i];
+    s.x += s.vx; s.y += s.vy; s.life--;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = "#ffeb8a";
+    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle="#fff";
     ctx.fill();
-
-    if(p.life <= 0) particles.splice(i, 1); // remove safely from end
-  }
-
-  // shooting stars
-  for(let i = shootingStars.length - 1; i >= 0; i--){
-    const s = shootingStars[i];
-    s.x += s.vx;
-    s.y += s.vy;
-    s.life--;
-
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = "#fff";
-    ctx.fill();
-
-    if(s.life <= 0) shootingStars.splice(i, 1);
+    if(s.life<=0) shootingStars.splice(i,1);
   }
 }
 
@@ -239,7 +219,7 @@ function endGame(){
   saveScore();
 }
 
-// buttons
+// restart & leaderboard buttons
 restartBtn.onclick = () => {
   endOverlay.classList.add("hidden");
   startOverlay.classList.remove("hidden");
@@ -264,16 +244,15 @@ function saveScore(){
   const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
   board.push({name:playerName, score});
   board.sort((a,b)=>b.score - a.score);
-  localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board.slice(0,50)));
+  localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board.slice(0,5))); // top 5
 }
 
 function populateLeaderboard(){
   const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
   leaderboardList.innerHTML="";
   let addedCurrent=false;
-  const top5 = board.slice(0,5);
 
-  top5.forEach((entry,i)=>{
+  board.forEach((entry,i)=>{
     const row=document.createElement("div"); row.className="lb-row";
     const num=document.createElement("div"); num.className="lb-num"; num.textContent=i+1;
     const name=document.createElement("div"); name.className="lb-name"; name.textContent=entry.name;
@@ -286,7 +265,7 @@ function populateLeaderboard(){
     leaderboardList.appendChild(row);
   });
 
-  if(!addedCurrent){
+  if(!addedCurrent && score>0){
     const row=document.createElement("div"); row.className="lb-row current";
     const num=document.createElement("div"); num.className="lb-num"; num.textContent="—";
     const name=document.createElement("div"); name.className="lb-name"; name.textContent=playerName;
@@ -295,19 +274,6 @@ function populateLeaderboard(){
     leaderboardList.appendChild(row);
   }
 }
-
-// jump input
-document.addEventListener("keydown", e=>{
-  if(gameStarted && e.code==="Space"){
-    star.vy = -2.5;
-  }
-});
-
-canvas.addEventListener("pointerdown", ()=>{
-  if(gameStarted){
-    star.vy = -2.5;
-  }
-});
 
 // page load
 document.addEventListener("DOMContentLoaded", ()=>{
@@ -318,4 +284,17 @@ document.addEventListener("DOMContentLoaded", ()=>{
   leaderboardModal.classList.add("hidden");
   scoreDisplay.style.display="none";
   resetGame();
+});
+
+// space/tap jump
+document.addEventListener("keydown", e=>{
+  if(starFalling && e.code==="Space" && invulnerableFrames<=0){
+    star.vy = -2.5;
+  }
+});
+
+document.addEventListener("pointerdown", ()=>{
+  if(starFalling && invulnerableFrames<=0){
+    star.vy = -2.5;
+  }
 });

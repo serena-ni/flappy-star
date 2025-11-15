@@ -51,7 +51,7 @@ body {
 /* hint text */
 .hint { margin-top: 14px; font-size: 16px; opacity: 0.8; }
 
-/* buttons */
+/* start button */
 .btn-start {
   width: 140px; height: 50px; border-radius: 24px;
   border: none; cursor: pointer;
@@ -80,7 +80,7 @@ body {
   transition: 0.3s;
 }
 .btn-start:hover::after { opacity: 1; }
-.btn-start.smaller { width: 130px; height: 46px; font-size: 18px; }
+.btn-start.smaller { width: 130px; height: 46px; font-size: 18px;font-family: "Quicksand", sans-serif;}
 
 /* input */
 #playerNameInput {
