@@ -4,27 +4,26 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>flappy star</title>
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div id="game-container">
-  <canvas id="gameCanvas"></canvas>
-
-<!-- start overlay -->
+<!-- Start Overlay -->
 <div id="startOverlay" class="overlay">
   <h1 class="title">flappy star</h1>
   <input type="text" id="playerNameInput" placeholder="Enter your name" />
-  <button id="startBtn" class="btn-start"><span>Start</span></button>
+  <button id="startBtn" class="btn-start"><span>start</span></button>
   <p class="hint">tap or press space to start</p>
 </div>
 
-<!-- game canvas -->
-<canvas id="gameCanvas"></canvas>
-<div id="scoreDisplay" class="score-display">0</div>
+<!-- Canvas & Score -->
+<div id="game-container">
+  <canvas id="gameCanvas"></canvas>
+  <div id="scoreDisplay" class="score-display">0</div>
+</div>
 
-<!-- end overlay -->
+<!-- End Overlay -->
 <div id="endOverlay" class="overlay hidden">
   <h2 class="title small">game over</h2>
   <div id="final-score">score: 0</div>
@@ -32,13 +31,12 @@
   <button id="viewLeaderboardBtn" class="btn-start smaller"><span>leaderboard</span></button>
 </div>
 
-<!-- leaderboard modal -->
+<!-- Leaderboard Modal -->
 <div id="leaderboardModal" class="overlay hidden">
   <h2 class="title small">leaderboard</h2>
   <div id="leaderboardList"></div>
   <button id="closeLeaderboardBtn" class="btn-start smaller"><span>close</span></button>
 </div>
-
 
 <script src="script.js"></script>
 </body>
