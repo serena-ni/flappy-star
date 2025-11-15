@@ -25,11 +25,18 @@
 </div>
 
   <!-- game over screen -->
-  <div id="game-over-screen" class="overlay hidden">
+<div id="game-over-screen" class="overlay hidden">
     <h2 class="title small">game over</h2>
-    <p id="final-score"></p>
+    <div id="final-score"></div>
 
-<button id="view-leaderboard-btn" class="btn-start smaller"><span>leaderboard</span></button>
+    <button id="restart-btn" class="btn-start smaller">
+     <span>restart</span>
+    </button>
+
+    <button id="view-leaderboard-btn" class="btn-start smaller" style="margin-top:16px;">
+     <span>leaderboard</span>
+    </button>
+</div>
 
 <!-- leaderboard modal -->
 <div id="leaderboard-modal" class="overlay hidden">
