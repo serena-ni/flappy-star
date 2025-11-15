@@ -13,7 +13,7 @@ const nameInput = document.getElementById("player-name");
 const finalScoreText = document.getElementById("final-score");
 const leaderboardList = document.getElementById("leaderboard-list");
 
-// game constants
+// Game constants
 let starX = 90;
 let starY = 280;
 let velocity = 0;
@@ -58,7 +58,21 @@ function createPipe() {
 
 // --- START GAME ---
 function startGame() {
-  playerName = nameInput.value.trim() || "Player";
+  const input = document.getElementById("usernameInput");
+  playerName = input.value.trim() || "Anonymous"; // fallback name
+
+  document.addEventListener("keydown", (e) => {
+    if (!gameStarted && e.code === "Space") {
+        startGame();
+    }
+});
+
+canvas.addEventListener("touchstart", () => {
+    if (!gameStarted) {
+        startGame();
+    }
+});
+
   startScreen.classList.add("hidden");
   gameOverScreen.classList.add("hidden");
   leaderboardModal.classList.add("hidden");
