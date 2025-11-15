@@ -1,13 +1,7 @@
-// FINAL FIXED script.js
-// Replaced previous version with a robust, defensive implementation.
-// Keep your HTML+CSS as-is and replace script.js with this file.
-
-"use strict";
-
-// ===== ELEMENTS =====
+// ELEMENTS
 const startOverlay = document.getElementById("startOverlay");
 const startBtn = document.getElementById("startBtn");
-const playerNameInput = document.getElementById("playerNameInput");
+const playerNameInput = document.getElementById("player-name");
 const scoreDisplay = document.getElementById("scoreDisplay");
 
 const endOverlay = document.getElementById("endOverlay");
@@ -19,430 +13,219 @@ const leaderboardModal = document.getElementById("leaderboardModal");
 const leaderboardList = document.getElementById("leaderboardList");
 const closeLeaderboardBtn = document.getElementById("closeLeaderboardBtn");
 
-// ===== CANVAS =====
+// CANVAS
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-canvas.width = 420;
-canvas.height = 640;
+canvas.width = 420; canvas.height = 640;
 
-// ===== GAME STATE =====
-let gameStarted = false;      // whether the main loop is running
-let starFalling = false;      // whether gravity is active for the star
-let playerName = "Guest";
-let score = 0;
-let pipes = [];
-let particles = [];
-let starsBackground = [];
-let shootingStars = [];
+// GAME STATE
+let gameStarted=false, starFalling=false, playerName="guest", score=0;
+let pipes=[], particles=[], starsBackground=[], shootingStars=[];
+let invulnerableFrames=0;
 
-// ===== STAR =====
-let star = {
-  x: 100,
-  y: canvas.height / 2,
-  radius: 12,
-  vy: 0,
-  gravity: 0.12,
-  maxVy: 2.5,
-  bobOffset: 0,
-  bobDir: 1
-};
+// STAR DATA
+let star={x:100,y:canvas.height/2,radius:12,vy:0,gravity:0.12,maxVy:2.5,bobOffset:0,bobDir:1};
+let _frameCount=0;
 
-// ===== BACKGROUND INIT =====
-for (let i = 0; i < 50; i++) {
-  starsBackground.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    r: Math.random() * 2 + 1
-  });
+// INITIALIZE BACKGROUND STARS
+for(let i=0;i<50;i++) starsBackground.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*2+1});
+
+// RESET GAME
+function resetGame(){
+  star.y=canvas.height/2; star.vy=0; star.bobOffset=0; star.bobDir=1;
+  score=0; pipes=[]; particles=[]; shootingStars=[];
 }
 
-// ===== HELPERS =====
-function resetGame() {
-  star.y = canvas.height / 2;
-  star.vy = 0;
-  star.bobOffset = 0;
-  star.bobDir = 1;
-  score = 0;
-  pipes = [];
-  particles = [];
-  shootingStars = [];
-  scoreDisplay.textContent = score;
-}
-
-function safeStartGame() {
-  // ensure idempotent: if already started, do nothing
-  if (gameStarted) return;
-  gameStarted = true;
-
+// START GAME
+function startGame(){
+  if(gameStarted) return;
+  gameStarted=true; _frameCount=0;
   startOverlay.classList.add("hidden");
   endOverlay.classList.add("hidden");
   leaderboardModal.classList.add("hidden");
+  scoreDisplay.style.display="block";
 
-  scoreDisplay.style.display = "block";
-
-  const nameVal = (playerNameInput && playerNameInput.value) ? playerNameInput.value.trim() : "";
-  playerName = nameVal !== "" ? nameVal : "Guest";
+  const nameVal = playerNameInput.value.trim();
+  playerName = nameVal!==""?nameVal:"guest";
 
   resetGame();
-  starFalling = false; // remain bobbing until user "flaps" or we set falling true
+  invulnerableFrames=30; // grace period
+  starFalling=false;
   requestAnimationFrame(gameLoop);
 }
 
-// ===== INPUT HANDLERS =====
-// start button: hide start overlay and start game, then start falling
-startBtn.addEventListener("click", () => {
-  startOverlay.classList.add("hidden");
-  safeStartGame();
-  starFalling = true;
+// START BUTTON
+startBtn.onclick = ()=>{ startOverlay.classList.add("hidden"); startGame(); starFalling=true; };
+
+// KEY & POINTER EVENTS
+document.addEventListener("keydown", e=>{
+  if(!gameStarted&&(e.code==="Space"||e.code==="Enter")){
+    e.preventDefault(); startOverlay.classList.add("hidden"); startGame(); starFalling=true;
+  } else if(starFalling && e.code==="Space" && invulnerableFrames<=0) star.vy=-2.5;
 });
 
-// key input: start or flap
-document.addEventListener("keydown", (e) => {
-  // handle only relevant keys
-  if (e.code === "Space" || e.code === "Enter") {
-    // prevent page scrolling on Space
-    e.preventDefault();
-  } else {
-    return;
-  }
-
-  // If game hasn't started, start it (and begin falling)
-  if (!gameStarted) {
-    safeStartGame();
-    starFalling = true;
-    return;
-  }
-
-  // otherwise if the star is falling, flap
-  if (starFalling && e.code === "Space") {
-    star.vy = -2.5;
-  }
+document.addEventListener("pointerdown", ()=>{
+  if(!gameStarted){ startOverlay.classList.add("hidden"); startGame(); starFalling=true; }
+  else if(starFalling && invulnerableFrames<=0) star.vy=-2.5;
 });
 
-// pointer/tap input: same behavior as Space
-document.addEventListener("pointerdown", () => {
-  if (!gameStarted) {
-    startOverlay.classList.add("hidden");
-    safeStartGame();
-    starFalling = true;
-    return;
-  }
-  if (starFalling) {
-    star.vy = -2.5;
-  }
-});
-
-// ===== GAME LOOP =====
-function gameLoop() {
-  // wrap loop body in try/catch so runtime errors don't silently stop RAF
-  try {
-    // clear
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // draw/update
-    drawBackground();
-    updateStar();
-    updatePipes();
-    updateParticles();
-    drawStar();
-
-    // UI
-    scoreDisplay.textContent = score;
-  } catch (err) {
-    console.error("Game loop error:", err);
-    // stop the game to avoid broken state; show end overlay so player can restart.
-    gameStarted = false;
-    endOverlay.classList.remove("hidden");
-    finalScoreEl.textContent = `Error`;
-    return;
-  }
-
-  // schedule next frame
-  if (gameStarted) requestAnimationFrame(gameLoop);
+// GAME LOOP
+function gameLoop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawBackground(); updateStar(); updatePipes(); updateParticles(); drawStar();
+  scoreDisplay.textContent = score; _frameCount++;
+  if(invulnerableFrames>0) invulnerableFrames--;
+  if(gameStarted) requestAnimationFrame(gameLoop);
 }
 
-// ===== BACKGROUND DRAWING =====
-function drawBackground() {
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // slightly drifting stars
-  starsBackground.forEach(s => {
-    s.x -= 0.12; // slow left drift
-    if (s.x < -2) s.x = canvas.width + 2;
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = "#fff";
-    ctx.fill();
+// BACKGROUND
+function drawBackground(){
+  ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+  starsBackground.forEach(s=>{
+    s.x-=0.1;
+    if(s.x<0)s.x=canvas.width;
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fillStyle="#fff"; ctx.fill();
   });
 }
 
-// ===== STAR LOGIC =====
-function updateStar() {
-  // pre-start bobbing
-  if (!starFalling) {
-    star.bobOffset += 0.5 * star.bobDir;
-    if (star.bobOffset > 4 || star.bobOffset < -4) star.bobDir *= -1;
-    star.y = canvas.height / 2 + star.bobOffset;
-    return;
+// STAR
+function updateStar(){
+  if(!starFalling){ // bob before first tap
+    star.bobOffset+=0.5*star.bobDir;
+    if(star.bobOffset>4||star.bobOffset<-4) star.bobDir*=-1;
+    star.y=canvas.height/2+star.bobOffset; return;
   }
 
-  // apply gravity & cap
-  star.vy += star.gravity;
-  if (!isFinite(star.vy)) star.vy = 0;
-  if (star.vy > star.maxVy) star.vy = star.maxVy;
-  star.y += star.vy;
+  star.vy+=star.gravity;
+  if(!isFinite(star.vy)) star.vy=0;
+  if(!isFinite(star.y)) star.y=canvas.height/2;
+  if(star.vy>star.maxVy) star.vy=star.maxVy;
+  star.y+=star.vy;
 
-  // add velocity-reactive trail particle
-  const trailSize = Math.max(0.6, Math.abs(star.vy) * 1.6 + 0.6);
-  particles.push({
-    x: star.x,
-    y: star.y,
-    vx: (Math.random() - 0.5) * 0.18,
-    vy: (Math.random() - 0.5) * 0.05,
-    r: trailSize,
-    life: 20
-  });
+  // star trail particles
+  let trailSize = star.vy*1.5+1;
+  particles.push({x:star.x,y:star.y,vx:(Math.random()-0.5)*0.2,vy:0,r:trailSize,life:20});
 
-  // rare shooting star
-  if (Math.random() < 0.0022) {
-    shootingStars.push({
-      x: canvas.width + 10,
-      y: Math.random() * (canvas.height * 0.45),
-      vx: -4.2,
-      vy: 0,
-      r: 2.5,
-      life: 70
-    });
-  }
+  // rare shooting stars
+  if(Math.random()<0.002) shootingStars.push({x:canvas.width,y:Math.random()*canvas.height/2,vx:-4,vy:0,r:3,life:60});
 
-  // floor collision
-  if (star.y + star.radius > canvas.height) {
-    // clamp inside canvas so visuals look okay before explosion
-    star.y = canvas.height - star.radius;
-    createExplosion(star.x, star.y);
-    shakeScreen();
-    endGame();
+  // check bottom collision
+  if(star.y+star.radius>canvas.height){
+    if(invulnerableFrames>0){ star.y=canvas.height-star.radius-1; star.vy=0; } 
+    else { createExplosion(star.x,star.y); shakeScreen(); endGame(); }
   }
 }
 
-function drawStar() {
-  ctx.beginPath();
-  ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-  ctx.fillStyle = "#ffeb8a";
-  ctx.fill();
+function drawStar(){
+  ctx.beginPath(); ctx.arc(star.x,star.y,star.radius,0,Math.PI*2); ctx.fillStyle="#ffeb8a"; ctx.fill();
 }
 
-// ===== PIPES =====
-let pipeGap = 140;
-let pipeSpacing = 290;
-
-function updatePipes() {
-  // spawn logic
-  if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeSpacing) {
-    const topH = Math.random() * (canvas.height / 2) + 60;
-    pipes.push({
-      x: canvas.width + 6,
-      top: topH,
-      bottom: canvas.height - topH - pipeGap,
-      width: 44,
-      passed: false
-    });
+// PIPES
+let pipeGap=140, pipeSpacing=280;
+function updatePipes(){
+  if(pipes.length===0||pipes[pipes.length-1].x<canvas.width-pipeSpacing){
+    let topH=Math.random()*(canvas.height/2)+60;
+    pipes.push({x:canvas.width,top:topH,bottom:canvas.height-topH-pipeGap,passed:false});
   }
 
-  // move / draw / collisions
-  for (let i = pipes.length - 1; i >= 0; i--) {
-    const p = pipes[i];
-    p.x -= 2;
+  pipes.forEach((p,i)=>{
+    p.x-=2;
+    ctx.fillStyle="#33aaff"; ctx.fillRect(p.x,0,40,p.top); ctx.fillRect(p.x,canvas.height-p.bottom,40,p.bottom);
 
-    // draw
-    ctx.fillStyle = "#33aaff";
-    ctx.fillRect(p.x, 0, p.width, p.top);
-    ctx.fillRect(p.x, canvas.height - p.bottom, p.width, p.bottom);
-
-    // collision check when overlapping in X
-    const collisionX = star.x + star.radius > p.x && star.x - star.radius < p.x + p.width;
-    if (collisionX) {
-      const hitTop = star.y - star.radius < p.top;
-      const hitBottom = star.y + star.radius > canvas.height - p.bottom;
-      if (hitTop || hitBottom) {
-        createExplosion(star.x, star.y);
-        shakeScreen();
-        endGame();
-        return; // stop processing pipes (we ended)
+    if(star.x+star.radius>p.x && star.x-star.radius<p.x+40){
+      if(invulnerableFrames<=0 && (star.y-star.radius<p.top || star.y+star.radius>canvas.height-p.bottom)){
+        createExplosion(star.x,star.y); shakeScreen(); endGame();
       }
     }
 
-    // score
-    if (p.x + p.width < star.x && !p.passed) {
-      p.passed = true;
-      score++;
-    }
-
-    // remove off-screen
-    if (p.x + p.width < -20) {
-      pipes.splice(i, 1);
-    }
-  }
+    if(p.x+40<0) pipes.splice(i,1);
+    if(p.x+40<star.x && !p.passed){ score++; p.passed=true; }
+  });
 }
 
-// ===== PARTICLES & SHOOTING STARS =====
-function createExplosion(x, y) {
-  for (let i = 0; i < 20; i++) {
-    particles.push({
-      x: x,
-      y: y,
-      vx: (Math.random() - 0.5) * 4.2,
-      vy: (Math.random() - 0.5) * 4.2,
-      r: Math.random() * 3 + 0.6,
-      life: 28 + Math.floor(Math.random() * 10)
-    });
-  }
+// PARTICLES
+function createExplosion(x,y){
+  for(let i=0;i<15;i++) particles.push({x:x,y:y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,r:Math.random()*3+1,life:30});
 }
 
-function updateParticles() {
-  // particles
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += 0.02; // tiny gravity for particles
-    p.life--;
-    if (p.life <= 0) {
-      particles.splice(i, 1);
-      continue;
-    }
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, Math.max(0.6, p.r), 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(255,235,138,0.95)";
-    ctx.fill();
-  }
+function updateParticles(){
+  particles.forEach((p,i)=>{
+    p.x+=p.vx; p.y+=p.vy; p.life--;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle="#ffeb8a"; ctx.fill();
+    if(p.life<=0) particles.splice(i,1);
+  });
 
-  // shooting stars
-  for (let i = shootingStars.length - 1; i >= 0; i--) {
-    const s = shootingStars[i];
-    s.x += s.vx;
-    s.y += s.vy;
-    s.life--;
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = "#fff";
-    ctx.fill();
-    if (s.life <= 0 || s.x < -20) shootingStars.splice(i, 1);
-  }
+  shootingStars.forEach((s,i)=>{
+    s.x+=s.vx; s.y+=s.vy; s.life--;
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fillStyle="#fff"; ctx.fill();
+    if(s.life<=0) shootingStars.splice(i,1);
+  });
 }
 
-// ===== SCREEN SHAKE =====
-function shakeScreen() {
-  canvas.style.transform = `translate(${(Math.random() * 6 - 3).toFixed(2)}px,${(Math.random() * 6 - 3).toFixed(2)}px)`;
-  setTimeout(() => (canvas.style.transform = ""), 60);
-}
+// SCREEN SHAKE
+function shakeScreen(){ canvas.style.transform=`translate(${Math.random()*6-3}px,${Math.random()*6-3}px)`; setTimeout(()=>{canvas.style.transform="";},50); }
 
-// ===== END / LEADERBOARD HANDLERS =====
-function endGame() {
-  // stop loop
-  gameStarted = false;
-  starFalling = false;
-
+// END GAME
+function endGame(){
+  gameStarted=false; starFalling=false;
   endOverlay.classList.remove("hidden");
-  finalScoreEl.textContent = `Score: ${score}`;
+  finalScoreEl.textContent=`score: ${score}`;
   saveScore();
 }
 
-restartBtn.onclick = () => {
+// BUTTON HANDLERS
+restartBtn.onclick = ()=>{
   endOverlay.classList.add("hidden");
   startOverlay.classList.remove("hidden");
-  playerNameInput && playerNameInput.focus();
+  playerNameInput.focus();
   resetGame();
 };
 
-viewLeaderboardBtn.onclick = (e) => {
-  e && e.stopPropagation();
-  populateLeaderboard();
-  leaderboardModal.classList.remove("hidden");
-  endOverlay.classList.add("hidden");
+viewLeaderboardBtn.onclick=(e)=>{
+  e.stopPropagation(); populateLeaderboard();
+  leaderboardModal.classList.remove("hidden"); endOverlay.classList.add("hidden");
 };
 
-closeLeaderboardBtn.onclick = () => {
-  leaderboardModal.classList.add("hidden");
-  endOverlay.classList.remove("hidden");
+closeLeaderboardBtn.onclick=()=>{
+  leaderboardModal.classList.add("hidden"); endOverlay.classList.remove("hidden");
 };
 
-// ===== LEADERBOARD =====
-function saveScore() {
-  const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard") || "[]");
-  board.push({ name: playerName, score });
-  board.sort((a, b) => b.score - a.score);
-  localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board.slice(0, 50)));
+// LEADERBOARD STORAGE
+function saveScore(){
+  const board=JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
+  board.push({name:playerName,score});
+  board.sort((a,b)=>b.score-b.score);
+  localStorage.setItem("flappyStarLeaderboard",JSON.stringify(board.slice(0,50)));
 }
 
-function populateLeaderboard() {
-  const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard") || "[]");
-  leaderboardList.innerHTML = "";
-  let addedCurrent = false;
+function populateLeaderboard(){
+  const board=JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
+  leaderboardList.innerHTML=""; let addedCurrent=false;
 
-  for (let i = 0; i < board.length; i++) {
-    const entry = board[i];
-    const row = document.createElement("div");
-    row.className = "lb-row";
-
-    const num = document.createElement("div");
-    num.className = "lb-num";
-    num.textContent = i + 1;
-
-    const name = document.createElement("div");
-    name.className = "lb-name";
-    name.textContent = entry.name;
-
-    const sc = document.createElement("div");
-    sc.className = "lb-score";
-    sc.textContent = entry.score;
-
-    if (!addedCurrent && entry.name === playerName && entry.score === score) {
-      row.classList.add("current");
-      addedCurrent = true;
-    }
-
-    row.appendChild(num);
-    row.appendChild(name);
-    row.appendChild(sc);
+  board.forEach((entry,i)=>{
+    const row=document.createElement("div"); row.className="lb-row";
+    const num=document.createElement("div"); num.className="lb-num"; num.textContent=i+1;
+    const name=document.createElement("div"); name.className="lb-name"; name.textContent=entry.name;
+    const sc=document.createElement("div"); sc.className="lb-score"; sc.textContent=entry.score;
+    if(entry.name===playerName && entry.score===score && !addedCurrent){ row.classList.add("current"); addedCurrent=true; }
+    row.appendChild(num); row.appendChild(name); row.appendChild(sc);
     leaderboardList.appendChild(row);
-    if (i >= 4) break; // show top 5
-  }
+  });
 
-  if (!addedCurrent) {
-    const row = document.createElement("div");
-    row.className = "lb-row current";
-
-    const num = document.createElement("div");
-    num.className = "lb-num";
-    num.textContent = "—";
-
-    const name = document.createElement("div");
-    name.className = "lb-name";
-    name.textContent = playerName;
-
-    const sc = document.createElement("div");
-    sc.className = "lb-score";
-    sc.textContent = score;
-
-    row.appendChild(num);
-    row.appendChild(name);
-    row.appendChild(sc);
+  if(!addedCurrent){
+    const row=document.createElement("div"); row.className="lb-row current";
+    const num=document.createElement("div"); num.className="lb-num"; num.textContent="—";
+    const name=document.createElement("div"); name.className="lb-name"; name.textContent=playerName;
+    const sc=document.createElement("div"); sc.className="lb-score"; sc.textContent=score;
+    row.appendChild(num); row.appendChild(name); row.appendChild(sc);
     leaderboardList.appendChild(row);
   }
 }
 
-// ===== PAGE LOAD INIT =====
-document.addEventListener("DOMContentLoaded", () => {
-  // ensure overlays are properly hidden/shown
-  gameStarted = false;
-  starFalling = false;
-  startOverlay.classList.remove("hidden");
-  endOverlay.classList.add("hidden");
-  leaderboardModal.classList.add("hidden");
-  scoreDisplay.style.display = "none";
-
-  // initialize
+// PAGE LOAD
+document.addEventListener("DOMContentLoaded", ()=>{
+  gameStarted=false; starFalling=false;
+  startOverlay.classList.remove("hidden"); endOverlay.classList.add("hidden");
+  leaderboardModal.classList.add("hidden"); scoreDisplay.style.display="none";
   resetGame();
 });
