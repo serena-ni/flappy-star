@@ -26,19 +26,20 @@ let playerName = "guest";
 let score = 0;
 let pipes = [];
 let particles = [];
-let starsBackground = [];
-let shootingStars = [];
 let invulnerableFrames = 0;
-let animationId = null;
+let animationId;
 
 // player star
 let star = { x:100, y:canvas.height/2, radius:12, vy:0, gravity:0.12, maxVy:2.5, bobOffset:0, bobDir:1 };
-let _frameCount = 0;
 
-// background stars
-for (let i=0;i<50;i++){
-  starsBackground.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2+1});
-}
+// background stars layers (parallax)
+const starLayers = [
+  Array.from({length: 30}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*1.5+0.5, speed:0.05})),
+  Array.from({length: 20}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2+1, speed:0.1})),
+  Array.from({length: 10}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*3+1, speed:0.2}))
+];
+
+let shootingStars = [];
 
 // reset game
 function resetGame(){
@@ -50,22 +51,18 @@ function resetGame(){
   pipes = [];
   particles = [];
   shootingStars = [];
-  scoreDisplay.textContent = 0;
 }
 
 // start game
 startBtn.onclick = () => {
   if(gameStarted) return;
   gameStarted = true;
-  starFalling = false;
-  _frameCount = 0;
-
+  starFalling = false; // hover first
   startOverlay.classList.add("hidden");
   endOverlay.classList.add("hidden");
   leaderboardModal.classList.add("hidden");
-
-  scoreDisplay.style.display = "block"; // show score
-  scoreDisplay.textContent = 0;
+  scoreDisplay.style.display = "block";
+  document.getElementById("game-container").classList.add("active");
 
   const nameVal = playerNameInput.value.trim();
   playerName = nameVal !== "" ? nameVal : "guest";
@@ -97,27 +94,62 @@ function gameLoop(){
   updateParticles();
   drawStar();
   scoreDisplay.textContent = score;
+
   if(invulnerableFrames>0) invulnerableFrames--;
+
   if(gameStarted) animationId = requestAnimationFrame(gameLoop);
 }
 
-// background
+// draw night sky with shimmer + parallax stars
 function drawBackground(){
-  ctx.fillStyle="#000";
+  // faint shimmer: oscillate between dark blue and black
+  const shimmer = Math.sin(Date.now()/1000)*10;
+  ctx.fillStyle = `rgb(${10+shimmer}, ${10+shimmer}, ${30+shimmer})`;
   ctx.fillRect(0,0,canvas.width,canvas.height);
-  starsBackground.forEach(s=>{
-    s.x -= 0.1;
-    if(s.x<0) s.x=canvas.width;
-    ctx.beginPath();
-    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-    ctx.fillStyle="#fff";
-    ctx.fill();
+
+  // parallax stars
+  starLayers.forEach(layer => {
+    layer.forEach(s=>{
+      s.x -= s.speed;
+      if(s.x<0) s.x = canvas.width;
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle="#fff";
+      ctx.fill();
+    });
   });
+
+  // shooting stars
+  shootingStars.forEach((s,i)=>{
+    s.x += s.vx;
+    s.y += s.vy;
+    s.life--;
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = s.r;
+    ctx.beginPath();
+    ctx.moveTo(s.x - s.vx*3, s.y - s.vy*3);
+    ctx.lineTo(s.x, s.y);
+    ctx.stroke();
+    if(s.life<=0) shootingStars.splice(i,1);
+  });
+
+  // occasionally add shooting star
+  if(Math.random()<0.002){
+    shootingStars.push({
+      x: canvas.width + 20,
+      y: Math.random()*canvas.height/2,
+      vx: -8 - Math.random()*2,
+      vy: 0,
+      r: 2 + Math.random()*1.5,
+      life: 50 + Math.random()*20
+    });
+  }
 }
 
-// player star
+// update player star
 function updateStar(){
   if(!starFalling){
+    // hover
     star.bobOffset += 0.5 * star.bobDir;
     if(star.bobOffset>4||star.bobOffset<-4) star.bobDir*=-1;
     star.y = canvas.height/2 + star.bobOffset;
@@ -128,12 +160,10 @@ function updateStar(){
   if(star.vy > star.maxVy) star.vy = star.maxVy;
   star.y += star.vy;
 
+  // trail
   particles.push({x:star.x, y:star.y, vx:0, vy:0, r:Math.max(1, star.vy*0.5), life:10});
 
-  if(Math.random()<0.001){
-    shootingStars.push({x:canvas.width, y:Math.random()*canvas.height/2, vx:-4, vy:0, r:2, life:50});
-  }
-
+  // bottom collision
   if(star.y + star.radius > canvas.height){
     if(invulnerableFrames>0){
       star.y = canvas.height-star.radius-1;
@@ -165,6 +195,8 @@ function updatePipes(){
 
   pipes.forEach((p,i)=>{
     p.x -= 2;
+
+    // subtle wobble
     p.wobble = Math.sin(Date.now()/200 + i) * 2;
 
     let x = Math.round(p.x);
@@ -172,24 +204,25 @@ function updatePipes(){
     let topHeight = p.top + p.wobble;
     let bottomHeight = p.bottom + p.wobble;
 
+    // top pipe
     let topGrad = ctx.createLinearGradient(x,0,x+w,topHeight);
     topGrad.addColorStop(0,"#33aaff");
     topGrad.addColorStop(1,"#0077cc");
     ctx.fillStyle = topGrad;
     ctx.fillRect(x,0,w,topHeight);
-
     ctx.fillStyle = "rgba(255,255,255,0.1)";
     ctx.fillRect(x+5,0,w-10,topHeight);
 
+    // bottom pipe
     let bottomGrad = ctx.createLinearGradient(x,canvas.height-bottomHeight,x+w,canvas.height);
     bottomGrad.addColorStop(0,"#0077cc");
     bottomGrad.addColorStop(1,"#33aaff");
     ctx.fillStyle = bottomGrad;
     ctx.fillRect(x,canvas.height-bottomHeight,w,bottomHeight);
-
     ctx.fillStyle = "rgba(255,255,255,0.1)";
     ctx.fillRect(x+5,canvas.height-bottomHeight,w-10,bottomHeight);
 
+    // collision
     if(starFalling && invulnerableFrames<=0 && star.x+star.radius>p.x && star.x-star.radius<p.x+w){
       if(star.y-star.radius<p.top || star.y+star.radius>canvas.height-p.bottom){
         createExplosion(star.x,star.y);
@@ -198,7 +231,10 @@ function updatePipes(){
       }
     }
 
+    // remove offscreen
     if(p.x+w<0) pipes.splice(i,1);
+
+    // scoring
     if(p.x+w<star.x && !p.passed){ score++; p.passed=true; }
   });
 }
@@ -220,16 +256,6 @@ function updateParticles(){
     ctx.fill();
     if(p.life<=0) particles.splice(i,1);
   }
-
-  for(let i=shootingStars.length-1;i>=0;i--){
-    let s = shootingStars[i];
-    s.x += s.vx; s.y += s.vy; s.life--;
-    ctx.beginPath();
-    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-    ctx.fillStyle="#fff";
-    ctx.fill();
-    if(s.life<=0) shootingStars.splice(i,1);
-  }
 }
 
 // screen shake
@@ -242,18 +268,18 @@ function shakeScreen(){
 function endGame() {
   gameStarted = false;
   starFalling = false;
-  cancelAnimationFrame(animationId);
 
-  scoreDisplay.style.display = "none"; // hide score
+  cancelAnimationFrame(animationId);
 
   setTimeout(() => {
     endOverlay.classList.remove("hidden");
     finalScoreEl.textContent = `score: ${score}`;
+    scoreDisplay.style.display = "none";
     saveScore();
   }, 0);
 }
 
-// restart & leaderboard buttons
+// restart & leaderboard
 restartBtn.onclick = () => {
   endOverlay.classList.add("hidden");
   leaderboardModal.classList.add("hidden");
