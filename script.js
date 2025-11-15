@@ -1,4 +1,4 @@
-// ================= ELEMENTS =================
+// ELEMENTS
 const startOverlay = document.getElementById("startOverlay");
 const startBtn = document.getElementById("startBtn");
 const playerNameInput = document.getElementById("playerNameInput");
@@ -13,7 +13,7 @@ const leaderboardModal = document.getElementById("leaderboardModal");
 const leaderboardList = document.getElementById("leaderboardList");
 const closeLeaderboardBtn = document.getElementById("closeLeaderboardBtn");
 
-// ================= GAME VARIABLES =================
+// GAME VARIABLES
 let gameStarted = false;
 let starFalling = false;
 let playerName = "Guest";
@@ -23,21 +23,21 @@ let particles = [];
 let starsBackground = [];
 let shootingStars = [];
 
-// ================= CANVAS =================
+// CANVAS
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 canvas.width = 420;
 canvas.height = 640;
 
-// ================= STAR =================
+// STAR
 let star = { x:100, y:canvas.height/2, radius:12, vy:0, gravity:0.12, maxVy:2.5, bobOffset:0, bobDir:1 };
 
-// ================= INITIALIZE BACKGROUND STARS =================
+// INITIALIZE BACKGROUND STARS
 for (let i=0;i<60;i++){
   starsBackground.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2+1});
 }
 
-// ================= FUNCTIONS =================
+// FUNCTIONS
 function resetGame(){
   star.y = canvas.height/2;
   star.vy = 0;
@@ -49,7 +49,7 @@ function resetGame(){
   shootingStars = [];
 }
 
-// ================= START GAME =================
+// START GAME
 function startGame(){
   if(gameStarted) return;
   gameStarted = true;
@@ -81,7 +81,7 @@ document.addEventListener("pointerdown", ()=>{
   else if(starFalling){ star.vy=-2.5; }
 });
 
-// ================= GAME LOOP =================
+// GAME LOOP
 function gameLoop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawBackground();
@@ -93,7 +93,7 @@ function gameLoop(){
   if(gameStarted) requestAnimationFrame(gameLoop);
 }
 
-// ================= DRAW BACKGROUND =================
+// DRAW BACKGROUND
 function drawBackground(){
   ctx.fillStyle="#000";
   ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -107,7 +107,7 @@ function drawBackground(){
   });
 }
 
-// ================= STAR =================
+// STAR
 function updateStar(){
   if(!starFalling){
     star.bobOffset+=0.5*star.bobDir;
@@ -142,7 +142,7 @@ function drawStar(){
   ctx.fill();
 }
 
-// ================= PIPES =================
+// PIPES
 let pipeGap = 140;
 let pipeSpacing = 280;
 
@@ -171,7 +171,7 @@ function updatePipes(){
   });
 }
 
-// ================= PARTICLES =================
+// PARTICLES
 function createExplosion(x,y){
   for(let i=0;i<15;i++){
     particles.push({
@@ -208,13 +208,13 @@ function updateParticles(){
   });
 }
 
-// ================= SCREEN SHAKE =================
+// SCREEN SHAKE
 function shakeScreen(){
   canvas.style.transform=`translate(${Math.random()*6-3}px,${Math.random()*6-3}px)`;
   setTimeout(()=>{canvas.style.transform="";},50);
 }
 
-// ================= END GAME =================
+// END GAME
 function endGame(){
   gameStarted=false;
   starFalling=false;
@@ -244,7 +244,7 @@ closeLeaderboardBtn.onclick = () => {
   endOverlay.style.display="flex";
 };
 
-// ================= LEADERBOARD =================
+// LEADERBOARD
 function saveScore(){
   const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
   board.push({name:playerName, score});
@@ -280,7 +280,7 @@ function populateLeaderboard(){
   }
 }
 
-// ================= PAGE LOAD INITIALIZATION =================
+// PAGE LOAD INITIALIZATION
 document.addEventListener("DOMContentLoaded", ()=>{
   gameStarted=false;
   starFalling=false;
