@@ -11,6 +11,7 @@ let gameStarted = false;
 let gameOver = false;
 let score = 0;
 let shakeOffset = { x: 0, y: 0 };
+let playerName = "Anonymous";
 
 // ===== STAR (PLAYER) =====
 const star = {
@@ -39,46 +40,19 @@ const starLayers = [
 function initStarfield() {
   starLayers.forEach((layer, idx) => layer.stars = []);
 
-  // layer 0 - far
-  for (let i = 0; i < 50; i++) {
-    starLayers[0].stars.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      size: Math.random() * 1.2 + 0.5,
-      alpha: Math.random() * 0.4 + 0.3
-    });
-  }
-
-  // layer 1 - mid
-  for (let i = 0; i < 40; i++) {
-    starLayers[1].stars.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      size: Math.random() * 1.5 + 0.8,
-      alpha: Math.random() * 0.5 + 0.3
-    });
-  }
-
-  // layer 2 - front
-  for (let i = 0; i < 30; i++) {
-    starLayers[2].stars.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      size: Math.random() * 2 + 1,
-      alpha: Math.random() * 0.6 + 0.4
-    });
-  }
+  for (let i = 0; i < 50; i++) starLayers[0].stars.push({x: Math.random()*canvas.width,y: Math.random()*canvas.height,size: Math.random()*1.2+0.5,alpha: Math.random()*0.4+0.3});
+  for (let i = 0; i < 40; i++) starLayers[1].stars.push({x: Math.random()*canvas.width,y: Math.random()*canvas.height,size: Math.random()*1.5+0.8,alpha: Math.random()*0.5+0.3});
+  for (let i = 0; i < 30; i++) starLayers[2].stars.push({x: Math.random()*canvas.width,y: Math.random()*canvas.height,size: Math.random()*2+1,alpha: Math.random()*0.6+0.4});
 }
 
 function drawStarfield() {
   starLayers.forEach(layer => {
     layer.stars.forEach((s, i) => {
       s.x -= layer.speed;
-      if (s.x < 0) s.x = canvas.width;
-
+      if(s.x < 0) s.x = canvas.width;
       ctx.fillStyle = `rgba(255,255,255,${s.alpha})`;
       ctx.beginPath();
-      ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+      ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
       ctx.fill();
     });
   });
@@ -87,211 +61,146 @@ function drawStarfield() {
 // ===== SHOOTING STARS =====
 let shootingStars = [];
 let lastShootingStarTime = 0;
-
 function spawnShootingStar() {
-  if (Date.now() - lastShootingStarTime < 6000 + Math.random() * 6000) return;
+  if(Date.now()-lastShootingStarTime < 6000+Math.random()*6000) return;
   lastShootingStarTime = Date.now();
-
-  shootingStars.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height * 0.4,
-    speed: 2.5 + Math.random() * 1.5,
-    alpha: 1
-  });
+  shootingStars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height*0.4,speed:2.5+Math.random()*1.5,alpha:1});
 }
-
-function drawShootingStars() {
-  shootingStars.forEach((s, i) => {
-    s.x += s.speed;
-    s.y += s.speed * 0.4;
-    s.alpha -= 0.01;
-
-    ctx.strokeStyle = `rgba(255,255,255,${s.alpha})`;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(s.x, s.y);
-    ctx.lineTo(s.x - 22, s.y - 7);
-    ctx.stroke();
-
-    if (s.alpha <= 0) shootingStars.splice(i, 1);
+function drawShootingStars(){
+  shootingStars.forEach((s,i)=>{
+    s.x+=s.speed;s.y+=s.speed*0.4;s.alpha-=0.01;
+    ctx.strokeStyle=`rgba(255,255,255,${s.alpha})`;
+    ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.x-22,s.y-7);ctx.stroke();
+    if(s.alpha<=0) shootingStars.splice(i,1);
   });
 }
 
 // ===== PIPES =====
-let pipes = [];
-const pipeWidth = 110;
-
-function spawnPipe() {
-  const pipeGap = 190 + Math.random() * 40;
-  const topHeight = 80 + Math.random() * (canvas.height - pipeGap - 160);
-  pipes.push({
-    x: canvas.width,
-    top: topHeight,
-    bottom: topHeight + pipeGap,
-    passed: false
+let pipes=[];
+const pipeWidth=110;
+function spawnPipe(){
+  const pipeGap = 190+Math.random()*40;
+  const topHeight = 80+Math.random()*(canvas.height-pipeGap-160);
+  pipes.push({x:canvas.width,top:topHeight,bottom:topHeight+pipeGap,passed:false});
+}
+function drawPipes(){
+  ctx.fillStyle="rgba(138,199,255,0.7)";
+  pipes.forEach(pipe=>{
+    ctx.fillRect(pipe.x,0,pipeWidth,pipe.top);
+    ctx.fillRect(pipe.x,pipe.bottom,pipeWidth,canvas.height-pipe.bottom);
   });
 }
-
-function drawPipes() {
-  ctx.fillStyle = "rgba(138,199,255,0.7)";
-  pipes.forEach(pipe => {
-    ctx.fillRect(pipe.x, 0, pipeWidth, pipe.top);
-    ctx.fillRect(pipe.x, pipe.bottom, pipeWidth, canvas.height - pipe.bottom);
+function updatePipes(){
+  pipes.forEach(pipe=>{
+    pipe.x-=2;
+    if(!pipe.passed && pipe.x+pipeWidth<star.x){score++;pipe.passed=true;}
   });
-}
-
-function updatePipes() {
-  pipes.forEach(pipe => {
-    pipe.x -= 2;
-
-    if (!pipe.passed && pipe.x + pipeWidth < star.x) {
-      score++;
-      pipe.passed = true;
-    }
-  });
-
-  pipes = pipes.filter(p => p.x + pipeWidth > 0);
+  pipes = pipes.filter(p=>p.x+pipeWidth>0);
 }
 
 // ===== STAR TRAIL =====
-function spawnStarTrail() {
-  if (star.hidden || !gameStarted) return;
-  const speedFactor = Math.min(Math.abs(star.velocity) / 6, 1);
-
-  starTrail.push({
-    x: star.x - 5 + Math.random() * 10,
-    y: star.y - 5 + Math.random() * 10,
-    vx: (Math.random() - 0.5) * 0.3,
-    vy: (Math.random() - 0.5) * 0.3,
-    radius: (Math.random() * 2 + 1) * (0.7 + 0.3 * speedFactor),
-    alpha: 0.8
-  });
+function spawnStarTrail(){
+  if(star.hidden||!gameStarted) return;
+  const speedFactor = Math.min(Math.abs(star.velocity)/6,1);
+  starTrail.push({x:star.x-5+Math.random()*10,y:star.y-5+Math.random()*10,vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,radius:(Math.random()*2+1)*(0.7+0.3*speedFactor),alpha:0.8});
 }
-
-function drawStarTrail() {
-  starTrail.forEach((p, i) => {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.alpha -= 0.02;
-    p.radius *= 0.97;
-    ctx.fillStyle = `rgba(255,235,170,${p.alpha})`;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    ctx.fill();
-    if (p.alpha <= 0 || p.radius <= 0.3) starTrail.splice(i, 1);
+function drawStarTrail(){
+  starTrail.forEach((p,i)=>{
+    p.x+=p.vx;p.y+=p.vy;p.alpha-=0.02;p.radius*=0.97;
+    ctx.fillStyle=`rgba(255,235,170,${p.alpha})`;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);ctx.fill();
+    if(p.alpha<=0||p.radius<=0.3) starTrail.splice(i,1);
   });
 }
 
 // ===== SHATTER =====
-function createShatter(x, y) {
-  for (let i = 0; i < 22; i++) {
-    shatterParticles.push({
-      x: x,
-      y: y,
-      vx: (Math.random() - 0.5) * 4,
-      vy: (Math.random() - 0.5) * 4,
-      life: 1
-    });
+function createShatter(x,y){
+  for(let i=0;i<22;i++){
+    shatterParticles.push({x:x,y:y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,life:1});
   }
 }
-
-function drawShatter() {
-  shatterParticles.forEach((p, i) => {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.life -= 0.02;
-
-    ctx.fillStyle = `rgba(255,235,170,${p.life})`;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-    ctx.fill();
-
-    if (p.life <= 0) shatterParticles.splice(i, 1);
+function drawShatter(){
+  shatterParticles.forEach((p,i)=>{
+    p.x+=p.vx;p.y+=p.vy;p.life-=0.02;
+    ctx.fillStyle=`rgba(255,235,170,${p.life})`;
+    ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();
+    if(p.life<=0) shatterParticles.splice(i,1);
   });
 }
 
 // ===== COLLISION =====
-function checkCollision() {
-  for (let pipe of pipes) {
-    if (
-      star.x + star.radius > pipe.x &&
-      star.x - star.radius < pipe.x + pipeWidth &&
-      (star.y - star.radius < pipe.top || star.y + star.radius > pipe.bottom)
-    ) {
-      endGame();
-      return;
+function checkCollision(){
+  for(let pipe of pipes){
+    if(star.x+star.radius>pipe.x && star.x-star.radius<pipe.x+pipeWidth && (star.y-star.radius<pipe.top || star.y+star.radius>pipe.bottom)){
+      endGame(); return;
     }
   }
 }
 
+// ===== LEADERBOARD =====
+function updateLeaderboard(name, score){
+  let leaderboard = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
+  leaderboard.push({name,score});
+  leaderboard.sort((a,b)=>b.score-a.score);
+  leaderboard = leaderboard.slice(0,5);
+  localStorage.setItem("flappyStarLeaderboard", JSON.stringify(leaderboard));
+
+  const list = document.getElementById("leaderboard-list");
+  list.innerHTML="";
+  leaderboard.forEach(entry=>{
+    const li = document.createElement("li");
+    li.textContent = `${entry.name}: ${entry.score}`;
+    list.appendChild(li);
+  });
+}
+
 // ===== GAME FLOW =====
-function startGame() {
-  document.getElementById("start-screen").style.display = "none";
-  gameStarted = true;
-  gameActive = true;
+function startGame(){
+  const nameInput=document.getElementById("player-name");
+  playerName=nameInput.value.trim()||"Anonymous";
+  document.getElementById("start-screen").style.display="none";
+  gameStarted=true; gameActive=true;
 }
 
-function endGame() {
-  gameActive = false;
-  gameOver = true;
+function endGame(){
+  gameActive=false; gameOver=true;
   createShatter(star.x, star.y);
-  star.hidden = true;
-  star.velocity = 0;
+  star.hidden=true; star.velocity=0;
 
-  // screen shake
-  let shakeFrames = 12;
-  let shakeInterval = setInterval(() => {
-    shakeOffset.x = (Math.random() - 0.5) * 6;
-    shakeOffset.y = (Math.random() - 0.5) * 6;
+  // Screen shake
+  let shakeFrames=12;
+  let shakeInterval=setInterval(()=>{
+    shakeOffset.x=(Math.random()-0.5)*6;
+    shakeOffset.y=(Math.random()-0.5)*6;
     shakeFrames--;
-    if (shakeFrames <= 0) {
-      clearInterval(shakeInterval);
-      shakeOffset.x = 0;
-      shakeOffset.y = 0;
-    }
-  }, 16);
+    if(shakeFrames<=0){clearInterval(shakeInterval); shakeOffset.x=0; shakeOffset.y=0;}
+  },16);
 
-  document.getElementById("final-score").textContent = `Score: ${score}`;
-  setTimeout(() => {
-    document.getElementById("game-over-screen").style.display = "flex";
-  }, 400);
+  document.getElementById("final-score").textContent=`Score: ${score}`;
+  updateLeaderboard(playerName, score);
+  setTimeout(()=>{document.getElementById("game-over-screen").style.display="flex";},400);
 }
 
-function resetGame() {
-  gameActive = false;
-  gameStarted = false;
-  gameOver = false;
-  star.y = canvas.height * 0.5;
-  star.velocity = 0;
-  star.hidden = false;
-  pipes = [];
-  shatterParticles = [];
-  starTrail = [];
-  score = 0;
-
-  document.getElementById("game-over-screen").style.display = "none";
-  document.getElementById("start-screen").style.display = "flex";
+function resetGame(){
+  gameActive=false; gameStarted=false; gameOver=false;
+  star.y=canvas.height*0.5; star.velocity=0; star.hidden=false;
+  pipes=[]; shatterParticles=[]; starTrail=[];
+  score=0;
+  document.getElementById("game-over-screen").style.display="none";
+  document.getElementById("start-screen").style.display="flex";
 }
 
 // ===== INPUT =====
-function flap() {
-  if (!gameStarted) return startGame();
-  if (!gameActive) return;
-  star.velocity = -4.4;
-}
-
-document.addEventListener("keydown", e => {
-  if (e.code === "Space") flap();
-});
-canvas.addEventListener("pointerdown", flap);
-document.getElementById("restart-btn").addEventListener("click", resetGame);
-document.querySelector("#start-screen .btn-start").addEventListener("click", startGame);
+function flap(){if(!gameStarted)return startGame(); if(!gameActive)return; star.velocity=-4.4;}
+document.addEventListener("keydown",e=>{if(e.code==="Space")flap();});
+canvas.addEventListener("pointerdown",flap);
+document.getElementById("restart-btn").addEventListener("click",resetGame);
+document.querySelector("#start-screen .btn-start").addEventListener("click",startGame);
 
 // ===== MAIN LOOP =====
-let pipeTimer = 0;
-
-function update() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+let pipeTimer=0;
+function update(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.save();
   ctx.translate(shakeOffset.x, shakeOffset.y);
 
@@ -301,68 +210,44 @@ function update() {
   spawnStarTrail();
   drawStarTrail();
 
-  if (!gameActive && !gameStarted) {
-    ctx.restore();
-    requestAnimationFrame(update);
-    return;
-  }
+  if(!gameActive && !gameStarted){ctx.restore(); requestAnimationFrame(update); return;}
 
-  // gentle hover
-  if (!gameActive) {
-    star.hoverOffset += 0.03 * star.hoverDir;
-    if (Math.abs(star.hoverOffset) > 5) star.hoverDir *= -1;
-    star.y = canvas.height * 0.5 + star.hoverOffset;
+  if(!gameActive){
+    star.hoverOffset+=0.03*star.hoverDir;
+    if(Math.abs(star.hoverOffset)>5) star.hoverDir*=-1;
+    star.y=canvas.height*0.5+star.hoverOffset;
   } else {
-    star.velocity += star.gravity;
-    if (star.velocity > star.maxGravity) star.velocity = star.maxGravity;
-    star.y += star.velocity;
+    star.velocity+=star.gravity;
+    if(star.velocity>star.maxGravity) star.velocity=star.maxGravity;
+    star.y+=star.velocity;
   }
 
   pipeTimer++;
-  if (pipeTimer > 110 + Math.floor(Math.random() * 40)) {
-    spawnPipe();
-    pipeTimer = 0;
-  }
+  if(pipeTimer>110+Math.floor(Math.random()*40)){spawnPipe(); pipeTimer=0;}
+  updatePipes(); drawPipes();
 
-  updatePipes();
-  drawPipes();
-
-  // rare spark explosion through tight pipe
-  pipes.forEach(pipe => {
+  // Rare spark explosion through tight pipe
+  pipes.forEach(pipe=>{
     const gapHeight = pipe.bottom - pipe.top;
-    if (!pipe.passed && star.x > pipe.x && star.x < pipe.x + pipeWidth) {
-      if (gapHeight < 200 && Math.random() < 0.02) {
-        for (let i = 0; i < 15; i++) {
-          shatterParticles.push({
-            x: star.x,
-            y: star.y,
-            vx: (Math.random() - 0.5) * 4,
-            vy: (Math.random() - 0.5) * 4,
-            life: 1
-          });
-        }
+    if(!pipe.passed && star.x>pipe.x && star.x<pipe.x+pipeWidth){
+      if(gapHeight<200 && Math.random()<0.02){
+        for(let i=0;i<15;i++){shatterParticles.push({x:star.x,y:star.y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,life:1});}
       }
     }
   });
 
-  if (gameActive) checkCollision();
+  if(gameActive) checkCollision();
 
-  if (!star.hidden) {
-    ctx.fillStyle = "#ffeab2";
-    ctx.beginPath();
-    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  if(!star.hidden){ctx.fillStyle="#ffeab2"; ctx.beginPath(); ctx.arc(star.x, star.y, star.radius,0,Math.PI*2); ctx.fill();}
 
   drawShatter();
 
-  // score display
-  ctx.font = "34px Quicksand";
-  ctx.fillStyle = "#fff8e8";
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = "rgba(0,0,0,0.5)";
-  ctx.strokeText(score, canvas.width / 2 - 10, 80);
-  ctx.fillText(score, canvas.width / 2 - 10, 80);
+  ctx.font="34px Quicksand";
+  ctx.fillStyle="#fff8e8";
+  ctx.lineWidth=3;
+  ctx.strokeStyle="rgba(0,0,0,0.5)";
+  ctx.strokeText(score, canvas.width/2-10, 80);
+  ctx.fillText(score, canvas.width/2-10, 80);
 
   ctx.restore();
   requestAnimationFrame(update);
