@@ -1,29 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>flappy star</title>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- start overlay -->
 <div id="startOverlay" class="overlay">
   <h1 class="title">flappy star</h1>
-  <input type="text" id="playerNameInput" placeholder="enter your name" />
+  <input type="text" id="playerNameInput" placeholder="enter your name">
   <button id="startBtn" class="btn-start"><span>start</span></button>
   <p class="hint">tap or press space to start</p>
 </div>
 
-<!-- game canvas -->
 <div id="game-container">
   <canvas id="gameCanvas"></canvas>
   <div id="scoreDisplay" class="score-display">0</div>
 </div>
 
-<!-- End Overlay -->
 <div id="endOverlay" class="overlay hidden">
   <h2 class="title small">game over</h2>
   <div id="final-score">score: 0</div>
@@ -31,7 +28,6 @@
   <button id="viewLeaderboardBtn" class="btn-start smaller"><span>leaderboard</span></button>
 </div>
 
-<!-- Leaderboard Modal -->
 <div id="leaderboardModal" class="overlay hidden">
   <h2 class="title small">leaderboard</h2>
   <div id="leaderboardList"></div>
