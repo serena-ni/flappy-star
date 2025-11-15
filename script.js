@@ -6,12 +6,12 @@ const scoreDisplay = document.getElementById("scoreDisplay");
 
 const endOverlay = document.getElementById("endOverlay");
 const restartBtn = document.getElementById("restartBtn");
-const viewLeaderboardBtn = document.getElementById("viewLeaderboardBtn");
-const finalScoreEl = document.getElementById("final-score");
 
-const leaderboardModal = document.getElementById("leaderboardModal");
-const leaderboardList = document.getElementById("leaderboardList");
+const viewLeaderboardBtn = document.getElementById("viewLeaderboardBtn");
 const closeLeaderboardBtn = document.getElementById("closeLeaderboardBtn");
+const leaderboardModal = document.getElementById("leaderboardModal");
+const finalScoreEl = document.getElementById("final-score");
+const leaderboardList = document.getElementById("leaderboardList");
 
 // canvas
 const canvas = document.getElementById("gameCanvas");
@@ -288,8 +288,7 @@ restartBtn.onclick = () => {
   resetGame();
 };
 
-viewLeaderboardBtn.onclick = (e)=>{
-  e.stopPropagation();
+viewLeaderboardBtn.onclick = () => {
   populateLeaderboard();
   leaderboardModal.classList.remove("hidden");
   endOverlay.classList.add("hidden");
