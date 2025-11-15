@@ -1,4 +1,4 @@
-/* global styles */
+/* global */
 body {
   margin: 0;
   background: #000;
@@ -27,7 +27,7 @@ body {
   box-shadow: 0 0 14px rgba(255, 255, 255, 0.18);
 }
 
-/* overlays */
+/* overlay */
 .overlay {
   position: absolute;
   inset: 0;
@@ -51,46 +51,53 @@ body {
 /* hint text */
 .hint { margin-top: 14px; font-size: 16px; opacity: 0.8; }
 
-/* buttons (uiverse-inspired) */
+/* buttons */
 .btn-start {
-  width: 140px;
-  height: 50px;
-  border-radius: 24px;
-  border: none;
-  cursor: pointer;
+  width: 140px; height: 50px; border-radius: 24px;
+  border: none; cursor: pointer;
   background: linear-gradient(135deg, #fff7aa, #ffd76b);
   box-shadow: 0 0 12px rgba(255,232,150,0.6);
-  margin-top: 14px;
+  margin-top: 24px;
   transition: 0.3s ease;
-  font-family: "Quicksand", sans-serif;
-}
-.btn-start:hover {
-  box-shadow: 0 0 18px rgba(255,240,180,0.75);
+  position: relative;
+  overflow: hidden;
 }
 .btn-start span {
   font-size: 20px;
   font-weight: 600;
   color: #5a4900;
 }
-.btn-start.smaller { width: 130px; height: 46px; }
+.btn-start:hover {
+  box-shadow: 0 0 18px rgba(255,240,180,0.75);
+}
+.btn-start::after {
+  content: "";
+  position: absolute;
+  width: 100%; height: 100%;
+  top: 0; left: 0;
+  background: radial-gradient(circle, rgba(255,223,0,0.3) 10%, transparent 70%);
+  opacity: 0;
+  transition: 0.3s;
+}
+.btn-start:hover::after { opacity: 1; }
+.btn-start.smaller { width: 130px; height: 46px; font-size: 18px; }
 
-/* input field */
-#player-name {
+/* input */
+#playerNameInput {
   margin-top: 14px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   font-size: 16px;
   border: 2px solid #ffd76b;
-  border-radius: 24px;
+  border-radius: 8px;
   background: rgba(255,255,255,0.05);
-  font-family: "Quicksand", sans-serif;
   color: #fff;
   text-align: center;
   outline: none;
-  width: 180px;
+  width: 200px;
 }
-#player-name::placeholder { color: rgba(255,255,255,0.6); }
+#playerNameInput::placeholder { color: rgba(255,255,255,0.6); font-family: "Quicksand", sans-serif; }
 
-/* score display */
+/* score */
 #scoreDisplay {
   position: absolute;
   top: 12px;
@@ -121,11 +128,15 @@ body {
   overflow: auto;
   z-index: 50;
 }
+#leaderboardModal.hidden { display: none; }
+
 .lb-row {
   display: flex;
   justify-content: space-between;
   padding: 6px 12px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
+  font-family: "Quicksand", sans-serif;
+  color: #fff;
 }
 .lb-num { width: 30px; text-align: left; }
 .lb-name { flex-grow: 1; margin-left: 6px; }

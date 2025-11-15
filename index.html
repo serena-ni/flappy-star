@@ -9,18 +9,21 @@
 </head>
 <body>
 
+<!-- start screen overlay -->
 <div id="startOverlay" class="overlay">
   <h1 class="title">flappy star</h1>
-    <input type="text" id="player-name" placeholder="enter your name">
+  <input type="text" id="playerNameInput" placeholder="enter your name">
   <button id="startBtn" class="btn-start"><span>start</span></button>
-  <p class="hint">tap or press space to start</p>
+  <p class="hint">press start to begin</p>
 </div>
 
+<!-- game container -->
 <div id="game-container">
   <canvas id="gameCanvas"></canvas>
   <div id="scoreDisplay" class="score-display">0</div>
 </div>
 
+<!-- end screen overlay -->
 <div id="endOverlay" class="overlay hidden">
   <h2 class="title small">game over</h2>
   <div id="final-score">score: 0</div>
@@ -28,6 +31,7 @@
   <button id="viewLeaderboardBtn" class="btn-start smaller"><span>leaderboard</span></button>
 </div>
 
+<!-- leaderboard overlay -->
 <div id="leaderboardModal" class="overlay hidden">
   <h2 class="title small">leaderboard</h2>
   <div id="leaderboardList"></div>

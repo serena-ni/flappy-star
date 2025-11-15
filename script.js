@@ -1,7 +1,7 @@
 // elements
 const startOverlay = document.getElementById("startOverlay");
 const startBtn = document.getElementById("startBtn");
-const playerNameInput = document.getElementById("player-name");
+const playerNameInput = document.getElementById("playerNameInput");
 const scoreDisplay = document.getElementById("scoreDisplay");
 
 const endOverlay = document.getElementById("endOverlay");
@@ -34,12 +34,12 @@ let invulnerableFrames = 0;
 let star = { x:100, y:canvas.height/2, radius:12, vy:0, gravity:0.12, maxVy:2.5, bobOffset:0, bobDir:1 };
 let _frameCount = 0;
 
-// background stars
-for(let i=0;i<50;i++){
+// initialize background star
+for (let i=0;i<50;i++){
   starsBackground.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2+1});
 }
 
-// reset game
+// game function
 function resetGame(){
   star.y = canvas.height/2;
   star.vy = 0;
@@ -65,28 +65,15 @@ function startGame(){
   playerName = nameVal !== "" ? nameVal : "guest";
 
   resetGame();
-  invulnerableFrames = 30;
+  invulnerableFrames = 30; // short grace period
   starFalling = true;
   requestAnimationFrame(gameLoop);
 }
 
-// listeners
-startBtn.onclick = startGame;
+// start button handler
+startBtn.onclick = ()=> startGame();
 
-// only start if clicking canvas
-canvas.addEventListener("pointerdown", ()=>{
-  if(!gameStarted) startGame();
-  else if(starFalling && invulnerableFrames<=0) star.vy=-2.5;
-});
-
-// stop input starting game from focusing input
-playerNameInput.addEventListener("pointerdown",(e)=> e.stopPropagation());
-playerNameInput.addEventListener("keydown",(e)=> { if(e.code==="Enter") startGame(); });
-document.addEventListener("keydown", e=>{
-  if(e.code==="Space" && starFalling && invulnerableFrames<=0) { e.preventDefault(); star.vy=-2.5; }
-});
-
-// game loop
+// ===== GAME LOOP =====
 function gameLoop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawBackground();
@@ -122,19 +109,24 @@ function updateStar(){
     star.y = canvas.height/2 + star.bobOffset;
     return;
   }
+
   star.vy+=star.gravity;
+  if(!isFinite(star.vy)) star.vy = 0;
+  if(!isFinite(star.y)) star.y = canvas.height/2;
   if(star.vy>star.maxVy) star.vy=star.maxVy;
   star.y+=star.vy;
 
+  // trail based on velocity
   let trailSize = star.vy*1.5+1;
-  particles.push({x:star.x,y:star.y,vx:(Math.random()-0.5)*0.2,vy:0,r:trailSize,life:20});
+  particles.push({x:star.x, y:star.y, vx:(Math.random()-0.5)*0.2, vy:0, r:trailSize, life:20});
 
+  // rare shooting star
   if(Math.random()<0.002) shootingStars.push({x:canvas.width, y:Math.random()*canvas.height/2, vx:-4, vy:0, r:3, life:60});
 
   if(star.y+star.radius>canvas.height){
     if(invulnerableFrames>0){
-      star.y=canvas.height-star.radius-1;
-      star.vy=0;
+      star.y = canvas.height - star.radius - 1;
+      star.vy = 0;
     } else {
       createExplosion(star.x,star.y);
       shakeScreen();
@@ -151,12 +143,15 @@ function drawStar(){
 }
 
 // pipes
-let pipeGap=140, pipeSpacing=280;
+let pipeGap = 140;
+let pipeSpacing = 280;
+
 function updatePipes(){
   if(pipes.length===0||pipes[pipes.length-1].x<canvas.width-pipeSpacing){
-    let topH=Math.random()*(canvas.height/2)+60;
+    let topH = Math.random()*(canvas.height/2)+60;
     pipes.push({x:canvas.width, top:topH, bottom:canvas.height-topH-pipeGap, passed:false});
   }
+
   pipes.forEach((p,i)=>{
     p.x-=2;
     ctx.fillStyle="#33aaff";
@@ -165,41 +160,68 @@ function updatePipes(){
 
     if(star.x+star.radius>p.x && star.x-star.radius<p.x+40){
       if(invulnerableFrames<=0){
-        if(star.y-star.radius<p.top||star.y+star.radius>canvas.height-p.bottom){
+        if(star.y-star.radius<p.top || star.y+star.radius>canvas.height-p.bottom){
           createExplosion(star.x,star.y);
           shakeScreen();
           endGame();
         }
       }
     }
+
     if(p.x+40<0) pipes.splice(i,1);
-    if(p.x+40<star.x&&!p.passed){ score++; p.passed=true; }
+    if(p.x+40<star.x && !p.passed){ score++; p.passed=true; }
   });
 }
 
 // particles
 function createExplosion(x,y){
   for(let i=0;i<15;i++){
-    particles.push({x,y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,r:Math.random()*3+1,life:30});
+    particles.push({x:x,y:y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,r:Math.random()*3+1,life:30});
   }
 }
+
 function updateParticles(){
-  particles.forEach((p,i)=>{
-    p.x+=p.vx; p.y+=p.vy; p.life--;
+  // create minimal trail behind star
+  if(starFalling){
+    particles.push({
+      x: star.x - star.radius/2,
+      y: star.y,
+      vx: -0.2,    // slight left drift
+      vy: 0,
+      r: 1.5,      // very small
+      life: 15
+    });
+  }
+
+  // update all particles
+  for(let i = particles.length - 1; i >= 0; i--){
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+
     ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fillStyle="#ffeb8a";
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffeb8a";
     ctx.fill();
-    if(p.life<=0) particles.splice(i,1);
-  });
-  shootingStars.forEach((s,i)=>{
-    s.x+=s.vx; s.y+=s.vy; s.life--;
+
+    if(p.life <= 0) particles.splice(i, 1); // remove safely from end
+  }
+
+  // shooting stars
+  for(let i = shootingStars.length - 1; i >= 0; i--){
+    const s = shootingStars[i];
+    s.x += s.vx;
+    s.y += s.vy;
+    s.life--;
+
     ctx.beginPath();
-    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-    ctx.fillStyle="#fff";
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = "#fff";
     ctx.fill();
-    if(s.life<=0) shootingStars.splice(i,1);
-  });
+
+    if(s.life <= 0) shootingStars.splice(i, 1);
+  }
 }
 
 // screen shake
@@ -217,19 +239,21 @@ function endGame(){
   saveScore();
 }
 
-// restart / leaderboard
+// buttons
 restartBtn.onclick = () => {
   endOverlay.classList.add("hidden");
   startOverlay.classList.remove("hidden");
   playerNameInput.focus();
   resetGame();
 };
+
 viewLeaderboardBtn.onclick = (e)=>{
   e.stopPropagation();
   populateLeaderboard();
   leaderboardModal.classList.remove("hidden");
   endOverlay.classList.add("hidden");
 };
+
 closeLeaderboardBtn.onclick = () => {
   leaderboardModal.classList.add("hidden");
   endOverlay.classList.remove("hidden");
@@ -238,35 +262,52 @@ closeLeaderboardBtn.onclick = () => {
 // leaderboard
 function saveScore(){
   const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
-  board.push({name:playerName,score});
-  board.sort((a,b)=>b.score-a.score);
-  localStorage.setItem("flappyStarLeaderboard",JSON.stringify(board.slice(0,50)));
+  board.push({name:playerName, score});
+  board.sort((a,b)=>b.score - a.score);
+  localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board.slice(0,50)));
 }
+
 function populateLeaderboard(){
   const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
   leaderboardList.innerHTML="";
   let addedCurrent=false;
+  const top5 = board.slice(0,5);
 
-  board.forEach((entry,i)=>{
+  top5.forEach((entry,i)=>{
     const row=document.createElement("div"); row.className="lb-row";
     const num=document.createElement("div"); num.className="lb-num"; num.textContent=i+1;
     const name=document.createElement("div"); name.className="lb-name"; name.textContent=entry.name;
     const sc=document.createElement("div"); sc.className="lb-score"; sc.textContent=entry.score;
     if(entry.name===playerName && entry.score===score && !addedCurrent){
-      row.classList.add("current"); addedCurrent=true;
+      row.classList.add("current");
+      addedCurrent=true;
     }
-    row.append(num,name,sc);
+    row.appendChild(num); row.appendChild(name); row.appendChild(sc);
     leaderboardList.appendChild(row);
   });
+
   if(!addedCurrent){
     const row=document.createElement("div"); row.className="lb-row current";
     const num=document.createElement("div"); num.className="lb-num"; num.textContent="—";
     const name=document.createElement("div"); name.className="lb-name"; name.textContent=playerName;
     const sc=document.createElement("div"); sc.className="lb-score"; sc.textContent=score;
-    row.append(num,name,sc);
+    row.appendChild(num); row.appendChild(name); row.appendChild(sc);
     leaderboardList.appendChild(row);
   }
 }
+
+// jump input
+document.addEventListener("keydown", e=>{
+  if(gameStarted && e.code==="Space"){
+    star.vy = -2.5;
+  }
+});
+
+canvas.addEventListener("pointerdown", ()=>{
+  if(gameStarted){
+    star.vy = -2.5;
+  }
+});
 
 // page load
 document.addEventListener("DOMContentLoaded", ()=>{
