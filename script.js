@@ -1,37 +1,34 @@
-// CANVAS SETUP
+// ===== CANVAS SETUP =====
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = 420;
+canvas.height = 640;
 
-
-// GAME STATE
+// ===== GAME STATE =====
 let gameActive = false;
 let gameStarted = false;
 let gameOver = false;
-
 let score = 0;
 
-// STAR (PLAYER)
+// ===== STAR (PLAYER) =====
 const star = {
   x: canvas.width * 0.3,
   y: canvas.height * 0.5,
   radius: 20,
   velocity: 0,
-  gravity: 0.1,                // very slow drop
-  maxGravity: 4,               // low max speed (was too fast)
+  gravity: 0.22,
+  maxGravity: 6,
   hoverOffset: 0,
   hoverDir: 1,
   hidden: false
 };
 
-
-// PARALLAX STARFIELD
+// ===== PARALLAX STARFIELD =====
 const starLayers = [
-  { speed: 0.15, stars: [] }, // far
-  { speed: 0.3, stars: [] },  // mid
-  { speed: 0.6, stars: [] }   // near
+  { speed: 0.15, stars: [] },
+  { speed: 0.3, stars: [] },
+  { speed: 0.6, stars: [] }
 ];
 
 function initStarfield() {
@@ -49,7 +46,7 @@ function initStarfield() {
 
 function drawStarfield() {
   starLayers.forEach(layer => {
-    layer.stars.forEach(s => {
+    layer.stars.forEach((s, i) => {
       s.x -= layer.speed;
       if (s.x < 0) s.x = canvas.width;
 
@@ -61,8 +58,7 @@ function drawStarfield() {
   });
 }
 
-
-// SHOOTING STARS
+// ===== SHOOTING STARS =====
 let shootingStars = [];
 let lastShootingStarTime = 0;
 
@@ -95,16 +91,13 @@ function drawShootingStars() {
   });
 }
 
-
-// PIPES
+// ===== PIPES =====
 let pipes = [];
-const pipeGap = 220;
 const pipeWidth = 110;
-const pipeSpeed = 2;
 
 function spawnPipe() {
-  const topHeight = 80 + Math.random() * (canvas.height - pipeGap - 200);
-
+  const pipeGap = 190 + Math.random() * 40;
+  const topHeight = 80 + Math.random() * (canvas.height - pipeGap - 160);
   pipes.push({
     x: canvas.width,
     top: topHeight,
@@ -116,31 +109,25 @@ function spawnPipe() {
 function drawPipes() {
   ctx.fillStyle = "rgba(138,199,255,0.7)";
   pipes.forEach(pipe => {
-    // top
     ctx.fillRect(pipe.x, 0, pipeWidth, pipe.top);
-
-    // bottom
     ctx.fillRect(pipe.x, pipe.bottom, pipeWidth, canvas.height - pipe.bottom);
   });
 }
 
 function updatePipes() {
   pipes.forEach(pipe => {
-    pipe.x -= pipeSpeed;
+    pipe.x -= 2;
 
-    // scoring
     if (!pipe.passed && pipe.x + pipeWidth < star.x) {
       score++;
       pipe.passed = true;
     }
   });
 
-  // remove offscreen pipes
   pipes = pipes.filter(p => p.x + pipeWidth > 0);
 }
 
-
-// STAR SHATTER EFFECT
+// ===== SHATTER =====
 let shatterParticles = [];
 
 function createShatter(x, y) {
@@ -170,8 +157,7 @@ function drawShatter() {
   });
 }
 
-
-// COLLISION
+// ===== COLLISION =====
 function checkCollision() {
   for (let pipe of pipes) {
     if (
@@ -185,8 +171,7 @@ function checkCollision() {
   }
 }
 
-
-// START / END / RESET
+// ===== GAME FLOW =====
 function startGame() {
   document.getElementById("start-screen").style.display = "none";
   gameStarted = true;
@@ -196,11 +181,11 @@ function startGame() {
 function endGame() {
   gameActive = false;
   gameOver = true;
-
   createShatter(star.x, star.y);
   star.hidden = true;
   star.velocity = 0;
 
+  document.getElementById("final-score").textContent = `Score: ${score}`;
   setTimeout(() => {
     document.getElementById("game-over-screen").style.display = "flex";
   }, 400);
@@ -223,23 +208,22 @@ function resetGame() {
   document.getElementById("start-screen").style.display = "flex";
 }
 
-
-// INPUT
+// ===== INPUT =====
 function flap() {
   if (!gameStarted) return startGame();
   if (!gameActive) return;
-
-  star.velocity = -3.2; // gentle flap
+  star.velocity = -4.4;
 }
 
 document.addEventListener("keydown", e => {
   if (e.code === "Space") flap();
 });
-
 canvas.addEventListener("pointerdown", flap);
 
+document.getElementById("restart-btn").addEventListener("click", resetGame);
+document.querySelector("#start-screen .btn-start").addEventListener("click", startGame);
 
-// MAIN LOOP
+// ===== MAIN LOOP =====
 let pipeTimer = 0;
 
 function update() {
@@ -254,22 +238,19 @@ function update() {
     return;
   }
 
-  // gentle hover before starting
+  // gentle hover
   if (!gameActive) {
-    star.hoverOffset += 0.02 * star.hoverDir;
+    star.hoverOffset += 0.03 * star.hoverDir;
     if (Math.abs(star.hoverOffset) > 5) star.hoverDir *= -1;
-
     star.y = canvas.height * 0.5 + star.hoverOffset;
   } else {
-    // apply gravity once the game begins
     star.velocity += star.gravity;
     if (star.velocity > star.maxGravity) star.velocity = star.maxGravity;
     star.y += star.velocity;
   }
 
-  // pipes
   pipeTimer++;
-  if (pipeTimer > 140) {
+  if (pipeTimer > 110 + Math.floor(Math.random() * 40)) {
     spawnPipe();
     pipeTimer = 0;
   }
@@ -277,10 +258,8 @@ function update() {
   updatePipes();
   drawPipes();
 
-  // collision
   if (gameActive) checkCollision();
 
-  // draw star only if not hidden (after shatter)
   if (!star.hidden) {
     ctx.fillStyle = "#ffeab2";
     ctx.beginPath();
@@ -290,21 +269,17 @@ function update() {
 
   drawShatter();
 
-  // score
+  // score display
+  ctx.font = "34px Quicksand";
   ctx.fillStyle = "#fff8e8";
-  ctx.font = "38px 'Poppins', sans-serif";
-  ctx.fillText(score, canvas.width / 2 - 10, 60);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(0,0,0,0.5)";
+  ctx.strokeText(score, canvas.width / 2 - 10, 80);
+  ctx.fillText(score, canvas.width / 2 - 10, 80);
 
   requestAnimationFrame(update);
 }
 
-
-// INIT
+// ===== INIT =====
 initStarfield();
 update();
-
-window.addEventListener("resize", () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  initStarfield();
-});
