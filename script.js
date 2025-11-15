@@ -28,9 +28,11 @@ let pipes = [];
 let particles = [];
 let starsBackground = [];
 let shootingStars = [];
+let invulnerableFrames = 0;
 
 // ===== STAR =====
 let star = { x:100, y:canvas.height/2, radius:12, vy:0, gravity:0.12, maxVy:2.5, bobOffset:0, bobDir:1 };
+let _frameCount = 0;
 
 // ===== INITIALIZE BACKGROUND STARS =====
 for (let i=0;i<50;i++){
@@ -53,6 +55,7 @@ function resetGame(){
 function startGame(){
   if(gameStarted) return;
   gameStarted = true;
+  _frameCount = 0;
   startOverlay.classList.add("hidden");
   endOverlay.classList.add("hidden");
   leaderboardModal.classList.add("hidden");
@@ -62,20 +65,35 @@ function startGame(){
   playerName = nameVal !== "" ? nameVal : "Guest";
 
   resetGame();
+  // give the player a short grace period (frames) after starting so
+  // accidental immediate inputs or race conditions don't trigger a collision
+  invulnerableFrames = 30; // ~0.5s at 60fps
   starFalling = false;
   requestAnimationFrame(gameLoop);
 }
 
-startBtn.onclick = ()=>{ startGame(); starFalling=true; };
+// single start button handler — hide the overlay, start the game, and begin falling
+startBtn.onclick = ()=>{ startOverlay.classList.add("hidden"); startGame(); starFalling=true; };
 
 document.addEventListener("keydown", e=>{
-  if(!gameStarted && (e.code==="Space"||e.code==="Enter")) startGame(), starFalling=true;
-  else if(starFalling && e.code==="Space") star.vy=-2.5;
+  if(!gameStarted && (e.code==="Space"||e.code==="Enter")){
+    e.preventDefault();
+    startOverlay.classList.add("hidden");
+    startGame();
+    starFalling=true;
+  } else if(starFalling && e.code==="Space" && invulnerableFrames<=0) {
+    star.vy=-2.5;
+  }
 });
 
 document.addEventListener("pointerdown", ()=>{
-  if(!gameStarted) startGame(), starFalling=true;
-  else if(starFalling) star.vy=-2.5;
+  if(!gameStarted){
+    startOverlay.classList.add("hidden");
+    startGame();
+    starFalling=true;
+  } else if(starFalling && invulnerableFrames<=0) {
+    star.vy=-2.5;
+  }
 });
 
 // ===== GAME LOOP =====
@@ -87,6 +105,8 @@ function gameLoop(){
   updateParticles();
   drawStar();
   scoreDisplay.textContent = score;
+  _frameCount++;
+  if(invulnerableFrames>0) invulnerableFrames--;
   if(gameStarted) requestAnimationFrame(gameLoop);
 }
 
@@ -114,6 +134,9 @@ function updateStar(){
   }
 
   star.vy+=star.gravity;
+  // guard against invalid numeric state
+  if(!isFinite(star.vy)) star.vy = 0;
+  if(!isFinite(star.y)) star.y = canvas.height/2;
   if(star.vy>star.maxVy) star.vy=star.maxVy;
   star.y+=star.vy;
 
@@ -125,9 +148,19 @@ function updateStar(){
   if(Math.random()<0.002) shootingStars.push({x:canvas.width, y:Math.random()*canvas.height/2, vx:-4, vy:0, r:3, life:60});
 
   if(star.y+star.radius>canvas.height){
-    createExplosion(star.x,star.y);
-    shakeScreen();
-    endGame();
+    console.log("collision: bottom", {y: star.y, vy: star.vy});
+    // If we're in the short invulnerability window after starting, don't end
+    // the game on a bottom touch — instead clamp the star inside the canvas
+    // and let the game continue. This protects against immediate accidental
+    // self-collisions caused by timing/race conditions.
+    if(invulnerableFrames>0){
+      star.y = canvas.height - star.radius - 1;
+      star.vy = 0;
+    } else {
+      createExplosion(star.x,star.y);
+      shakeScreen();
+      endGame();
+    }
   }
 }
 
@@ -155,10 +188,15 @@ function updatePipes(){
     ctx.fillRect(p.x,canvas.height-p.bottom,40,p.bottom);
 
     if(star.x+star.radius>p.x && star.x-star.radius<p.x+40){
-      if(star.y-star.radius<p.top || star.y+star.radius>canvas.height-p.bottom){
-        createExplosion(star.x,star.y);
-        shakeScreen();
-        endGame();
+      // if player is in invulnerable frames right after starting, skip collision
+      if(invulnerableFrames>0){
+        // skip collision checks for this pipe while invulnerable
+      } else {
+        if(star.y-star.radius<p.top || star.y+star.radius>canvas.height-p.bottom){
+          createExplosion(star.x,star.y);
+          shakeScreen();
+          endGame();
+        }
       }
     }
 
@@ -212,7 +250,6 @@ function endGame(){
 restartBtn.onclick = () => {
   endOverlay.classList.add("hidden");
   startOverlay.classList.remove("hidden");
-  startOverlay.style.display="flex";
   playerNameInput.focus();
   resetGame();
 };
@@ -221,19 +258,22 @@ viewLeaderboardBtn.onclick = (e)=>{
   e.stopPropagation();
   populateLeaderboard();
   leaderboardModal.classList.remove("hidden");
-  endOverlay.style.display="none";
+  // Use the `.hidden` class consistently rather than inline styles so CSS rules
+  // (including specificity) behave predictably.
+  endOverlay.classList.add("hidden");
 };
 
 closeLeaderboardBtn.onclick = () => {
   leaderboardModal.classList.add("hidden");
-  endOverlay.style.display="flex";
+  endOverlay.classList.remove("hidden");
 };
 
 // ===== LEADERBOARD =====
 function saveScore(){
   const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
   board.push({name:playerName, score});
-  board.sort((a,b)=>b.score-b.score);
+  // sort descending by score (highest first)
+  board.sort((a,b)=>b.score - a.score);
   localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board.slice(0,50)));
 }
 
