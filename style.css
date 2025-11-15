@@ -6,20 +6,21 @@ html, body {
   background: #000;
   font-family: "Quicksand", sans-serif;
   user-select: none;
-  height: 100vh;
+  color: #ffeb8a; /* default text color */
 }
 
-/* canvas container centered */
-#game-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+/* center game container */
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
 /* prevent accidental text selection */
 * {
   box-sizing: border-box;
+  font-family: "Quicksand", sans-serif;
 }
 
 /* CANVAS */
@@ -29,12 +30,11 @@ html, body {
   border-radius: 12px;
 }
 
-/* START OVERLAY */
-#startOverlay {
+/* OVERLAYS */
+.overlay {
   position: absolute;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.65);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -48,24 +48,21 @@ html, body {
   display: none !important;
 }
 
-/* TEXT INPUT */
+/* START SCREEN */
 #playerNameInput {
   padding: 10px 14px;
   border: 2px solid gold;
   border-radius: 10px;
   font-size: 16px;
-  font-family: "Quicksand", sans-serif;
   background: #111;
   color: #ffeb8a;
   width: 180px;
   text-align: center;
-  margin-bottom: 8px; /* space to start button */
+  margin-bottom: 8px;
 }
 
-/* placeholder matches theme */
 #playerNameInput::placeholder {
   color: #d8c25a;
-  font-family: "Quicksand", sans-serif;
   opacity: 0.7;
 }
 
@@ -73,15 +70,15 @@ html, body {
 button {
   border: 2px solid gold;
   border-radius: 12px;
-  font-family: "Quicksand", sans-serif;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
   position: relative;
   overflow: hidden;
+  font-family: "Quicksand", sans-serif;
 }
 
-/* ripple */
+/* ripple effect */
 button::after {
   content: '';
   position: absolute;
@@ -102,20 +99,19 @@ button:active::after {
   transition: 0s;
 }
 
-/* hover lift */
 button:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 10px gold;
 }
 
-/* START BUTTON (lighter gold) */
+/* START BUTTON */
 #startBtn {
   font-size: 18px;
   padding: 10px 22px;
   background: linear-gradient(145deg, #333, #1a1a1a);
-  color: #ffeaa4;
-  font-family: "Quicksand", sans-serif;
+  color: #ffeaa4; /* lighter gold */
   border-color: #ffdf75;
+  font-family: "Quicksand", sans-serif;
 }
 
 #startBtn:hover {
@@ -124,16 +120,8 @@ button:hover {
 
 /* END OVERLAY */
 #endOverlay {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
   background: rgba(0,0,0,0.7);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   gap: 14px;
-  color: #ffeb8a;
   font-family: "Quicksand", sans-serif;
 }
 
@@ -142,10 +130,10 @@ button:hover {
   font-size: 20px;
   padding: 12px 30px;
   background: linear-gradient(145deg, #ffeb8a, #ffd700);
-  font-family: "Quicksand", sans-serif;
   color: #111;
   border-color: #ffd700;
   box-shadow: 0 0 15px #ffd700;
+  font-family: "Quicksand", sans-serif;
 }
 
 #restartBtn:hover {
@@ -157,9 +145,9 @@ button:hover {
   font-size: 18px;
   padding: 12px 26px;
   background: linear-gradient(145deg, #222, #111);
-font-family: "Quicksand", sans-serif;
   color: #ffeb8a;
   border-color: gold;
+  font-family: "Quicksand", sans-serif;
 }
 
 /* LEADERBOARD MODAL */
@@ -174,11 +162,6 @@ font-family: "Quicksand", sans-serif;
   padding: 16px;
   color: #ffeb8a;
   font-family: "Quicksand", sans-serif;
-  display: none;
-}
-
-#leaderboardModal.hidden {
-  display: none;
 }
 
 #leaderboardList {
@@ -193,6 +176,7 @@ font-family: "Quicksand", sans-serif;
   grid-template-columns: 30px 1fr 50px;
   padding: 6px 4px;
   border-bottom: 1px solid #333;
+  font-family: "Quicksand", sans-serif;
 }
 
 .lb-row.current {
@@ -207,25 +191,24 @@ font-family: "Quicksand", sans-serif;
   padding: 10px 20px;
   background: linear-gradient(145deg, #222, #111);
   color: #ffeb8a;
-  font-family: "Quicksand", sans-serif;
   border-color: gold;
+  font-family: "Quicksand", sans-serif;
 }
 
 /* SCORE DISPLAY */
 #scoreDisplay {
   position: absolute;
-  top: 16px;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 6px 14px;
-  background: linear-gradient(145deg, #333, #1a1a1a);
-  border: 2px solid gold;
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+  background: linear-gradient(145deg, #ffeb8a, #ffd700);
+  border: 2px solid #ffd700;
   border-radius: 12px;
-  font-size: 20px;
-  font-weight: 600;
-  color: #ffeaa4;
+  padding: 8px 16px;
+  box-shadow: 0 0 15px #ffd700;
+  display: none;
   font-family: "Quicksand", sans-serif;
-  text-align: center;
-  box-shadow: 0 0 8px gold;
-  user-select: none;
 }
