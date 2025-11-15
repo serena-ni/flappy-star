@@ -146,3 +146,59 @@ body {
   color: #ffd76b;
   font-weight: 700;
 }
+
+/* ==== END SCREEN BUTTONS ==== */
+
+/* PRIMARY button (restart) */
+.end-btn-primary {
+  width: 170px;
+  height: 54px;
+  border-radius: 26px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #fff7aa, #ffe07a, #ffd76b);
+  background-size: 200% 200%;
+  box-shadow: 0 0 14px rgba(255, 232, 150, 0.75);
+  transition: 0.25s ease;
+  font-family: "Quicksand", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #5a4900;
+}
+
+.end-btn-primary:hover {
+  background-position: right;
+  box-shadow: 0 0 18px rgba(255, 240, 180, 0.95);
+  transform: translateY(-2px);
+}
+
+/* SECONDARY button (leaderboard) */
+.end-btn-secondary {
+  width: 150px;
+  height: 50px;
+  border-radius: 22px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 220, 130, 0.6);
+  backdrop-filter: blur(6px);
+  transition: 0.25s ease;
+  font-family: "Quicksand", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffeab0;
+  box-shadow: 0 0 8px rgba(255, 225, 160, 0.3);
+}
+
+.end-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 0 10px rgba(255, 240, 180, 0.6);
+  transform: translateY(-1px);
+}
+
+/* spacing between the ending buttons */
+.end-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
