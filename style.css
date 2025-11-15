@@ -104,3 +104,32 @@ body {
   text-shadow: 0 0 6px rgba(255,235,170,0.8);
   opacity: 1;
 }
+
+/* input name text box */
+.btn-input {
+  width: 200px;
+  height: 50px;
+  border-radius: 24px;
+  border: none;
+  background: linear-gradient(135deg, #fff7aa, #ffe07a, #ffd76b);
+  background-size: 200% 200%;
+  box-shadow: 0 0 12px rgba(255, 232, 150, 0.6);
+  transition: 0.3s ease;
+  font-family: "Quicksand", sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #5a4900;
+  text-align: center;
+  padding: 0 14px;
+  margin-top: 14px;
+}
+
+.btn-input::placeholder {
+  color: #5a4900;
+  opacity: 0.7;
+}
+
+.btn-input:hover {
+  background-position: right;
+  box-shadow: 0 0 18px rgba(255, 240, 180, 0.75);
+}
