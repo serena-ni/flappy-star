@@ -256,6 +256,7 @@ function endGame(){
   endOverlay.classList.remove("hidden");
   finalScoreEl.textContent=`score: ${score}`;
   saveScore();
+  cancelAnimationFrame(animationId);
 }
 
 // restart & leaderboard buttons
