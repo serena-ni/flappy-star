@@ -1,42 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>flappy star</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+
 <div id="game-container">
   <canvas id="gameCanvas"></canvas>
 
-  <!-- Score display -->
-  <div id="scoreDisplay">0</div>
-
-  <!-- Start Overlay -->
+  <!-- START OVERLAY -->
   <div id="startOverlay" class="overlay">
-    <h1 class="title">flappy star</h1>
-    <p class="start-hint">tap or press space to start</p>
-    <input id="playerNameInput" type="text" placeholder="enter your name…" class="name-input" />
-    <button id="startBtn" class="btn-start"><span>start</span></button>
+    <div class="title">flappy star</div>
+    <input type="text" id="playerNameInput" placeholder="Enter your name" />
+    <button class="btn-start" id="startBtn"><span>start</span></button>
+    <div class="hint">tap or press space to start</div>
   </div>
 
-  <!-- End Overlay -->
+  <!-- END OVERLAY -->
   <div id="endOverlay" class="overlay hidden">
-    <h1 class="title small">game over</h1>
-    <p id="final-score"></p>
-    <div class="end-buttons">
-      <button id="restartBtn" class="end-btn-primary">restart</button>
-      <button id="viewLeaderboardBtn" class="end-btn-secondary">leaderboard</button>
-    </div>
+    <div class="title small">game over</div>
+    <div id="final-score">score: 0</div>
+    <button class="btn-start smaller" id="restartBtn"><span>restart</span></button>
+    <button class="btn-start smaller" id="viewLeaderboardBtn"><span>leaderboard</span></button>
   </div>
 
-  <!-- Leaderboard Modal -->
-  <div id="leaderboardModal" class="overlay hidden">
-    <h2 class="title small">leaderboard</h2>
+  <!-- SCORE DISPLAY -->
+  <div id="scoreDisplay" style="display:none">0</div>
+
+  <!-- LEADERBOARD MODAL -->
+  <div id="leaderboardModal" class="hidden">
+    <div class="title small">leaderboard</div>
     <div id="leaderboardList"></div>
-    <button id="closeLeaderboardBtn" class="end-btn-secondary">close</button>
+    <button class="btn-start smaller" id="closeLeaderboardBtn"><span>close</span></button>
   </div>
 </div>
 
