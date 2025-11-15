@@ -5,38 +5,50 @@ const playerNameInput = document.getElementById("playerNameInput");
 const scoreDisplay = document.getElementById("scoreDisplay");
 
 let playerName = "Guest";
-let gameStarted = false;
+let gameStarted = false; // game loop running
+let starFalling = false; // actual gravity active
 
 function startGame() {
   if (gameStarted) return;
   gameStarted = true;
-
-  const nameVal = playerNameInput.value.trim();
-  playerName = nameVal !== "" ? nameVal : "Guest";
-
   startOverlay.classList.add("hidden");
   endOverlay.classList.add("hidden");
   leaderboardModal.classList.add("hidden");
   scoreDisplay.style.display = "block";
 
+  const nameVal = playerNameInput.value.trim();
+  playerName = nameVal !== "" ? nameVal : "Guest";
+
   resetGame();
+  starFalling = false; // star still bobbing
   requestAnimationFrame(gameLoop);
 }
 
-startBtn.onclick = () => startGame();
+// start button
+startBtn.onclick = () => {
+  startGame();
+  starFalling = true;
+};
 
+// keyboard / tap
 document.addEventListener("keydown", (e) => {
-  if (!gameStarted && (e.code === "Space" || e.code === "Enter")) {
-    e.preventDefault();
-    startGame();
-  } else if (gameStarted && e.code === "Space") {
+  if (!gameStarted) {
+    if (e.code === "Space" || e.code === "Enter") {
+      startGame();
+      starFalling = true;
+    }
+  } else if (starFalling && e.code === "Space") {
     star.vy = -2.5;
   }
 });
 
 document.addEventListener("pointerdown", () => {
-  if (!gameStarted) startGame();
-  else star.vy = -2.5;
+  if (!gameStarted) {
+    startGame();
+    starFalling = true;
+  } else if (starFalling) {
+    star.vy = -2.5;
+  }
 });
 
 // ================= GAME STATE =================
@@ -49,7 +61,7 @@ let star = { x:100, y:canvas.height/2, radius:12, vy:0, gravity:0.12, maxVy:3, b
 let pipes=[], pipeGap=140, pipeSpacing=280, score=0;
 let particles=[], starsBackground=[], shootingStars=[];
 
-// init background stars
+// background stars
 for (let i=0;i<60;i++){
   starsBackground.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2+1});
 }
@@ -92,7 +104,8 @@ function drawBackground(){
 }
 
 function updateStar(){
-  if(!gameStarted){
+  if(!starFalling){
+    // gentle bob before game starts
     star.bobOffset += 0.5*star.bobDir;
     if(star.bobOffset>4 || star.bobOffset<-4) star.bobDir*=-1;
     star.y = canvas.height/2 + star.bobOffset;
@@ -103,7 +116,7 @@ function updateStar(){
   if(star.vy>star.maxVy) star.vy=star.maxVy;
   star.y += star.vy;
 
-  // trail particles
+  // trail particles (size affected by velocity)
   particles.push({x:star.x, y:star.y, vx:(Math.random()-0.5)*0.2, vy:0, r: Math.random()*(star.vy+1)*2, life:20});
 
   if(star.y+star.radius>canvas.height){
@@ -132,6 +145,7 @@ function updatePipes(){
     ctx.fillRect(p.x,0,40,p.top);
     ctx.fillRect(p.x,canvas.height-p.bottom,40,p.bottom);
 
+    // collision
     if(star.x+star.radius>p.x && star.x-star.radius<p.x+40){
       if(star.y-star.radius<p.top || star.y+star.radius>canvas.height-p.bottom){
         createExplosion(star.x, star.y);
@@ -188,7 +202,9 @@ const closeLeaderboardBtn = document.getElementById("closeLeaderboardBtn");
 
 function endGame() {
   gameStarted = false;
+  starFalling = false;
   endOverlay.classList.remove("hidden");
+  endOverlay.style.display = "flex";
   finalScoreEl.textContent = `Score: ${score}`;
   saveScore();
 }
@@ -196,6 +212,7 @@ function endGame() {
 restartBtn.onclick = () => {
   endOverlay.classList.add("hidden");
   startOverlay.classList.remove("hidden");
+  startOverlay.style.display = "flex";
   playerNameInput.focus();
   resetGame();
 };
