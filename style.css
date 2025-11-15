@@ -1,5 +1,7 @@
-/* canvas fill */
-body, html {
+/* =======================================
+   GLOBAL
+======================================= */
+html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -8,177 +10,217 @@ body, html {
   user-select: none;
 }
 
-#gameCanvas {
-  display: block;
-  background: #000;
+/* Center the game canvas */
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-/* center overlays */
-.overlay {
+/* Prevent accidental text selection */
+* {
+  box-sizing: border-box;
+}
+
+/* =======================================
+   CANVAS
+======================================= */
+#gameCanvas {
+  display: block;
+  border: 2px solid #444;
+  border-radius: 12px;
+}
+
+/* =======================================
+   START OVERLAY
+======================================= */
+#startOverlay {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: #ffeebe;
-  z-index: 10;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.65);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  color: #ffeb8a;
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
-/* START SCREEN */
-#startOverlay {
-  backdrop-filter: blur(3px);
-}
-
-#titleText {
-  font-size: 42px;
-  margin-bottom: 20px;
-  color: #ffefb0;
-}
-
-/* name input */
+/* TEXT INPUT */
 #playerNameInput {
-  width: 240px;
   padding: 10px 14px;
-  margin-bottom: 18px;
-  font-family: "Quicksand", sans-serif;
-  font-size: 16px;
+  border: 2px solid gold;
   border-radius: 10px;
-  background: #141414;
-  border: 2px solid #e8c86a;
-  color: #ffefc0;
-  outline: none;
-  transition: box-shadow .2s ease;
+  font-size: 16px;
+  font-family: "Quicksand", sans-serif;
+  background: #111;
+  color: #ffeb8a;
+  width: 180px;
+  text-align: center;
 }
 
+/* Placeholder matches theme */
 #playerNameInput::placeholder {
-  color: #d8c48a;
+  color: #d8c25a;
+  opacity: 0.7;
 }
 
-#playerNameInput:focus {
-  box-shadow: 0 0 10px rgba(255, 220, 120, 0.4);
+/* Add space between input + start button */
+#playerNameInput {
+  margin-bottom: 8px;
 }
 
-/* universal button */
-.game-btn {
+/* =======================================
+   BUTTON BASE STYLE
+======================================= */
+button {
+  border: 2px solid gold;
+  border-radius: 12px;
   font-family: "Quicksand", sans-serif;
   font-weight: 600;
-  font-size: 18px;
-  padding: 12px 26px;
-  border-radius: 14px;
-  border: 2px solid #e8c86a;
-  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-  color: #ffef9f;
   cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
   position: relative;
   overflow: hidden;
-  transition: transform .12s ease, box-shadow .15s ease, background .2s;
 }
 
-/* ripple */
-.game-btn::after {
-  content: "";
+/* Ripple */
+button::after {
+  content: '';
   position: absolute;
-  width: 280%;
-  height: 280%;
-  top: -100%;
-  left: -100%;
-  background: rgba(255, 215, 0, 0.28);
+  width: 260%;
+  height: 260%;
+  background: rgba(255, 215, 0, 0.3);
+  top: -80%;
+  left: -80%;
   border-radius: 50%;
   transform: scale(0);
-  transition: transform 0.45s ease, opacity 0.45s ease;
+  transition: transform 0.4s ease, opacity 0.4s ease;
   pointer-events: none;
 }
 
-.game-btn:active::after {
+button:active::after {
   transform: scale(1);
   opacity: 0;
+  transition: 0s;
 }
 
-.game-btn:hover {
+/* Hover lift */
+button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
+  box-shadow: 0 0 10px gold;
 }
 
-/* start button */
-.btn-start {
-  font-size: 20px;
-  padding: 14px 30px;
-  background: linear-gradient(145deg, #2e2e2e, #1c1c1c);
-  color: #ffeebe;
-  border-color: #f0d77a;
+/* =======================================
+   START BUTTON (lighter gold)
+======================================= */
+#startBtn {
+  font-size: 18px;
+  padding: 10px 22px;
+  background: linear-gradient(145deg, #333, #1a1a1a);
+  color: #ffeaa4; /* lighter gold */
+  border-color: #ffdf75;
 }
 
-/* restart button (highest emphasis) */
+/* On hover */
+#startBtn:hover {
+  box-shadow: 0 0 12px #ffdf75;
+}
+
+/* =======================================
+   END OVERLAY
+======================================= */
+#endOverlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  color: #ffeb8a;
+}
+
+/* =======================================
+   RESTART BUTTON (more prominent)
+======================================= */
 #restartBtn {
-  font-size: 22px;
-  padding: 16px 34px;
-  background: linear-gradient(145deg, #fff1a8, #f4d86c);
-  color: #262200;
-  border-color: #ffe07c;
-  box-shadow: 0 0 15px rgba(255, 220, 120, 0.7);
+  font-size: 20px;
+  padding: 12px 30px;
+  background: linear-gradient(145deg, #ffeb8a, #ffd700);
+  color: #111;
+  border-color: #ffd700;
+  box-shadow: 0 0 15px #ffd700;
 }
 
 #restartBtn:hover {
-  box-shadow: 0 0 20px rgba(255, 225, 130, 1);
-  transform: translateY(-2.5px);
+  box-shadow: 0 0 20px #ffe680;
 }
 
-/* leaderboard + close buttons */
-#viewLeaderboardBtn,
-#closeLeaderboard {
-  padding: 12px 24px;
-  background: linear-gradient(145deg, #1e1e1e, #121212);
-  color: #ffefb0;
-  border-color: #e2c467;
+/* =======================================
+   LEADERBOARD BUTTON
+======================================= */
+#viewLeaderboardBtn {
   font-size: 18px;
+  padding: 12px 26px;
+  background: linear-gradient(145deg, #222, #111);
+  color: #ffeb8a;
+  border-color: gold;
 }
 
-#viewLeaderboardBtn:hover,
-#closeLeaderboard:hover {
-  box-shadow: 0 0 10px rgba(240, 210, 130, 0.25);
-}
-
-/* leaderboard window */
-#leaderboardOverlay {
-  width: 360px;
-  padding: 20px;
-  background: rgba(20, 20, 20, 0.9);
+/* =======================================
+   LEADERBOARD MODAL
+======================================= */
+#leaderboardModal {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  background: #111;
+  border: 2px solid gold;
   border-radius: 14px;
-  border: 2px solid #e8c86a;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.25);
+  padding: 16px;
+  color: #ffeb8a;
+  display: none;
 }
 
-#leaderboardOverlay h2 {
-  font-size: 24px;
-  margin-bottom: 12px;
-  color: #ffefb0;
+#leaderboardModal.hidden {
+  display: none;
 }
 
 #leaderboardList {
-  text-align: left;
-  margin: 0 auto 18px;
-  padding: 0;
-  list-style-type: none;
-  color: #f9eab0;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-#leaderboardList li {
-  padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 238, 150, 0.2);
-  font-size: 18px;
+.lb-row {
+  display: grid;
+  grid-template-columns: 30px 1fr 50px;
+  padding: 6px 4px;
+  border-bottom: 1px solid #333;
 }
 
-/* center end screen */
-#endOverlay {
-  backdrop-filter: blur(4px);
+.lb-row.current {
+  color: #fff;
+  font-weight: 700;
 }
 
-#finalScoreText {
-  font-size: 32px;
-  color: #ffefb0;
-  margin-bottom: 16px;
+/* Close leaderboard button */
+#closeLeaderboardBtn {
+  margin-top: 12px;
+  font-size: 16px;
+  padding: 10px 20px;
+  background: linear-gradient(145deg, #222, #111);
+  color: #ffeb8a;
+  border-color: gold;
 }
