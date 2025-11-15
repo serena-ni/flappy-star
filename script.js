@@ -256,3 +256,43 @@ function update(){
 // ===== INIT =====
 initStarfield();
 update();
+
+// ===== LEADERBOARD =====
+const viewLeaderboardBtn = document.getElementById("view-leaderboard-btn");
+const leaderboardModal = document.getElementById("leaderboard-modal");
+const closeLeaderboardBtn = document.getElementById("close-leaderboard-btn");
+
+viewLeaderboardBtn.addEventListener("click", () => {
+  populateLeaderboard();
+  leaderboardModal.classList.remove("hidden");
+});
+
+closeLeaderboardBtn.addEventListener("click", () => {
+  leaderboardModal.classList.add("hidden");
+});
+
+function populateLeaderboard() {
+  const leaderboard = JSON.parse(localStorage.getItem("flappyStarLeaderboard") || "[]");
+  const list = document.getElementById("leaderboard-list");
+  list.innerHTML = "";
+
+  let yourEntryAdded = false;
+
+  leaderboard.forEach((entry, idx) => {
+    const li = document.createElement("li");
+    li.textContent = `${idx + 1}. ${entry.name}: ${entry.score}`;
+    if(entry.name === playerName && entry.score === score && !yourEntryAdded){
+      li.classList.add("current");
+      yourEntryAdded = true;
+    }
+    list.appendChild(li);
+  });
+
+  // if  score isn’t in top 5, show entry at bottom
+  if(!yourEntryAdded){
+    const li = document.createElement("li");
+    li.textContent = `Your score: ${playerName}: ${score}`;
+    li.classList.add("current");
+    list.appendChild(li);
+  }
+}

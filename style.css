@@ -131,3 +131,25 @@ body {
   background: rgba(255, 255, 255, 0.25); /* slightly brighter on hover */
   box-shadow: 0 0 12px rgba(255, 215, 107, 0.6); /* subtle gold glow */
 }
+
+/* leaderboard modal */
+#leaderboard-modal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+#leaderboard-box li {
+  font-size: 18px;
+  margin: 6px 0;
+}
+
+/* highlight current player */
+#leaderboard-box li.current {
+  color: #ffd76b;
+  font-weight: 700;
+}
