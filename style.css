@@ -1,6 +1,4 @@
-/* =======================================
-   GLOBAL
-======================================= */
+/* GLOBAL */
 html, body {
   margin: 0;
   padding: 0;
@@ -10,7 +8,7 @@ html, body {
   user-select: none;
 }
 
-/* Center the game canvas */
+/* center the game canvas */
 body {
   display: flex;
   justify-content: center;
@@ -18,23 +16,19 @@ body {
   height: 100vh;
 }
 
-/* Prevent accidental text selection */
+/* prevent accidental text selection */
 * {
   box-sizing: border-box;
 }
 
-/* =======================================
-   CANVAS
-======================================= */
+/* CANVAS */
 #gameCanvas {
   display: block;
   border: 2px solid #444;
   border-radius: 12px;
 }
 
-/* =======================================
-   START OVERLAY
-======================================= */
+/* START OVERLAY */
 #startOverlay {
   position: absolute;
   top: 0; left: 0;
@@ -65,20 +59,18 @@ body {
   text-align: center;
 }
 
-/* Placeholder matches theme */
+/* placeholder matches theme */
 #playerNameInput::placeholder {
   color: #d8c25a;
   opacity: 0.7;
 }
 
-/* Add space between input + start button */
+/* add space between input + start button */
 #playerNameInput {
   margin-bottom: 8px;
 }
 
-/* =======================================
-   BUTTON BASE STYLE
-======================================= */
+/* BUTTON BASE STYLE */
 button {
   border: 2px solid gold;
   border-radius: 12px;
@@ -90,7 +82,7 @@ button {
   overflow: hidden;
 }
 
-/* Ripple */
+/* ripple */
 button::after {
   content: '';
   position: absolute;
@@ -111,15 +103,13 @@ button:active::after {
   transition: 0s;
 }
 
-/* Hover lift */
+/* hover lift */
 button:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 10px gold;
 }
 
-/* =======================================
-   START BUTTON (lighter gold)
-======================================= */
+/* START BUTTON (lighter gold) */
 #startBtn {
   font-size: 18px;
   padding: 10px 22px;
@@ -133,9 +123,7 @@ button:hover {
   box-shadow: 0 0 12px #ffdf75;
 }
 
-/* =======================================
-   END OVERLAY
-======================================= */
+/* END OVERLAY */
 #endOverlay {
   position: absolute;
   top: 0; left: 0;
@@ -149,9 +137,7 @@ button:hover {
   color: #ffeb8a;
 }
 
-/* =======================================
-   RESTART BUTTON (more prominent)
-======================================= */
+/* RESTART BUTTON (more prominent) */
 #restartBtn {
   font-size: 20px;
   padding: 12px 30px;
@@ -165,9 +151,7 @@ button:hover {
   box-shadow: 0 0 20px #ffe680;
 }
 
-/* =======================================
-   LEADERBOARD BUTTON
-======================================= */
+/* LEADERBOARD BUTTON */
 #viewLeaderboardBtn {
   font-size: 18px;
   padding: 12px 26px;
@@ -176,9 +160,7 @@ button:hover {
   border-color: gold;
 }
 
-/* =======================================
-   LEADERBOARD MODAL
-======================================= */
+/* LEADERBOARD MODAL */
 #leaderboardModal {
   position: absolute;
   top: 50%; left: 50%;
@@ -215,7 +197,7 @@ button:hover {
   font-weight: 700;
 }
 
-/* Close leaderboard button */
+/* close leaderboard button */
 #closeLeaderboardBtn {
   margin-top: 12px;
   font-size: 16px;
