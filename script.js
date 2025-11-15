@@ -45,6 +45,7 @@ function resetGame(){
   star.vy = 0;
   star.bobOffset = 0;
   star.bobDir = 1;
+  star = { x: canvas.width*0.3, y: canvas.height/2, vy: 0, radius: 18 };
   score = 0;
   pipes = [];
   particles = [];
@@ -250,18 +251,21 @@ function shakeScreen(){
 }
 
 // end game
-function endGame(){
-  gameStarted=false;
-  starFalling=false;
+function endGame() {
+  gameStarted = false;
+  starFalling = false;
+
+  cancelAnimationFrame(animationId);   // <-- required
+
   endOverlay.classList.remove("hidden");
-  finalScoreEl.textContent=`score: ${score}`;
+  finalScoreEl.textContent = `score: ${score}`;
   saveScore();
-  cancelAnimationFrame(animationId);
 }
 
 // restart & leaderboard buttons
 restartBtn.onclick = () => {
   endOverlay.classList.add("hidden");
+  leaderboardModal.classList.add("hidden"); // ensure hidden
   startOverlay.classList.remove("hidden");
   playerNameInput.focus();
   resetGame();
