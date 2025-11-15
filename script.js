@@ -32,16 +32,38 @@ const starLayers = [
 ];
 
 function initStarfield() {
-  starLayers.forEach(layer => {
-    for (let i = 0; i < 120; i++) {
-      layer.stars.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: Math.random() * 2 + 1,
-        alpha: Math.random() * 0.6 + 0.2
-      });
-    }
-  });
+  // clear existing stars
+  starLayers.forEach(layer => layer.stars = []);
+
+  // Layer 0: farthest, slowest, smallest, more sparse
+  for (let i = 0; i < 50; i++) {
+    starLayers[0].stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 1.2 + 0.5,
+      alpha: Math.random() * 0.4 + 0.3
+    });
+  }
+
+  // Layer 1: middle layer
+  for (let i = 0; i < 40; i++) {
+    starLayers[1].stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 1.5 + 0.8,
+      alpha: Math.random() * 0.5 + 0.3
+    });
+  }
+
+  // Layer 2: closest, fastest, slightly larger
+  for (let i = 0; i < 30; i++) {
+    starLayers[2].stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 2 + 1,
+      alpha: Math.random() * 0.6 + 0.4
+    });
+  }
 }
 
 function drawStarfield() {
