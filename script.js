@@ -14,6 +14,7 @@ function startGame() {
   playerName = nameVal !== "" ? nameVal : "Guest";
 
   startOverlay.classList.add("hidden");
+  endOverlay.classList.add("hidden");
   resetGame();
   requestAnimationFrame(gameLoop);
 }
@@ -24,14 +25,18 @@ document.addEventListener("keydown", (e) => {
   if (!gameStarted && (e.code === "Space" || e.code === "Enter")) {
     e.preventDefault();
     startGame();
+  } else if (gameStarted && e.code === "Space") {
+    // flap
+    star.vy = -2.5;
   }
 });
 
 document.addEventListener("pointerdown", () => {
   if (!gameStarted) startGame();
+  else star.vy = -2.5;
 });
 
-// ================= GAME STATE & ELEMENTS =================
+// ================= GAME STATE =================
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 canvas.width = 420;
@@ -43,7 +48,7 @@ let star = {
   y: canvas.height/2,
   radius: 12,
   vy: 0,
-  gravity: 0.15,
+  gravity: 0.12,
   maxVy: 3,
   bobOffset: 0,
   bobDir: 1
@@ -52,7 +57,6 @@ let star = {
 let pipes = [];
 let pipeGap = 140;
 let pipeSpacing = 280;
-let lastPipeX = 400;
 let score = 0;
 let particles = [];
 let starsBackground = [];
@@ -81,6 +85,7 @@ function gameLoop(){
   updatePipes();
   updateParticles();
   drawStar();
+  drawScore();
 
   if(gameStarted) requestAnimationFrame(gameLoop);
 }
@@ -109,9 +114,10 @@ function updateStar(){
   if(star.vy>star.maxVy) star.vy = star.maxVy;
   star.y += star.vy;
 
-  // collision with bottom
+  // bottom collision
   if(star.y+star.radius>canvas.height){
     createExplosion(star.x, star.y);
+    shakeScreen();
     endGame();
   }
 }
@@ -121,6 +127,13 @@ function drawStar(){
   ctx.arc(star.x, star.y, star.radius, 0, Math.PI*2);
   ctx.fillStyle="#ffeb8a";
   ctx.fill();
+}
+
+function drawScore(){
+  ctx.fillStyle = "#fff";
+  ctx.font = "24px Quicksand";
+  ctx.textAlign = "right";
+  ctx.fillText(score, canvas.width - 20, 40);
 }
 
 function updatePipes(){
@@ -206,9 +219,13 @@ restartBtn.onclick = () => {
 viewLeaderboardBtn.onclick = () => {
   populateLeaderboard();
   leaderboardModal.classList.remove("hidden");
+  endOverlay.style.display = "none";
 };
 
-closeLeaderboardBtn.onclick = () => leaderboardModal.classList.add("hidden");
+closeLeaderboardBtn.onclick = () => {
+  leaderboardModal.classList.add("hidden");
+  endOverlay.style.display = "flex";
+};
 
 function saveScore() {
   const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
