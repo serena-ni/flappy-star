@@ -216,10 +216,11 @@ restartBtn.onclick = () => {
   resetGame();
 };
 
-viewLeaderboardBtn.onclick = () => {
+viewLeaderboardBtn.onclick = (e) => {
+  e.stopPropagation(); // prevent bubbling
   populateLeaderboard();
   leaderboardModal.classList.remove("hidden");
-  endOverlay.style.display = "none";
+  endOverlay.style.display = "none"; // hide end overlay
 };
 
 closeLeaderboardBtn.onclick = () => {
