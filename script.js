@@ -34,12 +34,12 @@ let invulnerableFrames = 0;
 let star = { x:100, y:canvas.height/2, radius:12, vy:0, gravity:0.12, maxVy:2.5, bobOffset:0, bobDir:1 };
 let _frameCount = 0;
 
-// initialize background stars
+// background stars
 for (let i=0;i<50;i++){
   starsBackground.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2+1});
 }
 
-// game functions
+// reset game
 function resetGame(){
   star.y = canvas.height/2;
   star.vy = 0;
@@ -52,10 +52,10 @@ function resetGame(){
 }
 
 // start game
-function startGame(){
+startBtn.onclick = () => {
   if(gameStarted) return;
   gameStarted = true;
-  starFalling = true;
+  starFalling = false; // hover first
   _frameCount = 0;
   startOverlay.classList.add("hidden");
   endOverlay.classList.add("hidden");
@@ -66,12 +66,22 @@ function startGame(){
   playerName = nameVal !== "" ? nameVal : "guest";
 
   resetGame();
-  invulnerableFrames = 30; // short grace period
+  invulnerableFrames = 30;
   requestAnimationFrame(gameLoop);
-}
+};
 
-// only start button triggers game start
-startBtn.onclick = startGame;
+// input handler
+function handleJump(){
+  if(!gameStarted) return;
+  if(!starFalling){
+    starFalling = true;
+    star.vy = 0;
+  } else if(invulnerableFrames <= 0){
+    star.vy = -2.5;
+  }
+}
+document.addEventListener("keydown", e => { if(e.code==="Space") handleJump(); });
+document.addEventListener("pointerdown", handleJump);
 
 // game loop
 function gameLoop(){
@@ -91,7 +101,7 @@ function drawBackground(){
   ctx.fillStyle="#000";
   ctx.fillRect(0,0,canvas.width,canvas.height);
   starsBackground.forEach(s=>{
-    s.x -= 0.1; 
+    s.x -= 0.1;
     if(s.x<0) s.x=canvas.width;
     ctx.beginPath();
     ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
@@ -100,29 +110,27 @@ function drawBackground(){
   });
 }
 
-// player star logic
+// player star
 function updateStar(){
   if(!starFalling){
-    // hover before start
-    star.bobOffset += 0.5*star.bobDir;
+    // hover
+    star.bobOffset += 0.5 * star.bobDir;
     if(star.bobOffset>4||star.bobOffset<-4) star.bobDir*=-1;
     star.y = canvas.height/2 + star.bobOffset;
     return;
   }
 
+  // gravity
   star.vy += star.gravity;
-  if(!isFinite(star.vy)) star.vy=0;
-  if(!isFinite(star.y)) star.y=canvas.height/2;
-  if(star.vy>star.maxVy) star.vy=star.maxVy;
+  if(star.vy > star.maxVy) star.vy = star.maxVy;
   star.y += star.vy;
 
-  // trail
-  let trailSize = Math.max(1, star.vy*1.2);
-  particles.push({x:star.x, y:star.y, vx:(Math.random()-0.5)*0.3, vy:0, r:trailSize, life:15});
+  // minimal trail
+  particles.push({x:star.x, y:star.y, vx:0, vy:0, r:Math.max(1, star.vy*0.5), life:10});
 
   // shooting stars
-  if(Math.random()<0.002){
-    shootingStars.push({x:canvas.width, y:Math.random()*canvas.height/2, vx:-4, vy:0, r:3, life:60});
+  if(Math.random()<0.001){
+    shootingStars.push({x:canvas.width, y:Math.random()*canvas.height/2, vx:-4, vy:0, r:2, life:50});
   }
 
   // bottom collision
@@ -138,7 +146,6 @@ function updateStar(){
   }
 }
 
-// draw player star
 function drawStar(){
   ctx.beginPath();
   ctx.arc(star.x, star.y, star.radius,0,Math.PI*2);
@@ -151,17 +158,38 @@ let pipeGap = 140;
 let pipeSpacing = 280;
 
 function updatePipes(){
-  if(pipes.length===0||pipes[pipes.length-1].x<canvas.width-pipeSpacing){
+  if(pipes.length===0 || pipes[pipes.length-1].x < canvas.width - pipeSpacing){
     let topH = Math.random()*(canvas.height/2)+60;
     pipes.push({x:canvas.width, top:topH, bottom:canvas.height-topH-pipeGap, passed:false});
   }
 
   pipes.forEach((p,i)=>{
-    p.x-=2;
-    ctx.fillStyle="#33aaff";
-    ctx.fillRect(p.x,0,40,p.top);
-    ctx.fillRect(p.x,canvas.height-p.bottom,40,p.bottom);
+    p.x -= 2;
+    let x = Math.round(p.x);
 
+    // top pipe gradient
+    let topGrad = ctx.createLinearGradient(x,0,x+40,p.top);
+    topGrad.addColorStop(0,"#33aaff");
+    topGrad.addColorStop(1,"#0077cc");
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(x,0,40,p.top);
+
+    // subtle top highlight stripe
+    ctx.fillStyle = "rgba(255,255,255,0.1)";
+    ctx.fillRect(x+5,0,30,p.top);
+
+    // bottom pipe gradient
+    let bottomGrad = ctx.createLinearGradient(x,canvas.height-p.bottom,x+40,canvas.height);
+    bottomGrad.addColorStop(0,"#0077cc");
+    bottomGrad.addColorStop(1,"#33aaff");
+    ctx.fillStyle = bottomGrad;
+    ctx.fillRect(x,canvas.height-p.bottom,40,p.bottom);
+
+    // subtle bottom highlight stripe
+    ctx.fillStyle = "rgba(255,255,255,0.1)";
+    ctx.fillRect(x+5,canvas.height-p.bottom,30,p.bottom);
+
+    // collision
     if(starFalling && invulnerableFrames<=0 && star.x+star.radius>p.x && star.x-star.radius<p.x+40){
       if(star.y-star.radius<p.top || star.y+star.radius>canvas.height-p.bottom){
         createExplosion(star.x,star.y);
@@ -174,6 +202,7 @@ function updatePipes(){
     if(p.x+40<star.x && !p.passed){ score++; p.passed=true; }
   });
 }
+
 
 // particles
 function createExplosion(x,y){
@@ -284,17 +313,4 @@ document.addEventListener("DOMContentLoaded", ()=>{
   leaderboardModal.classList.add("hidden");
   scoreDisplay.style.display="none";
   resetGame();
-});
-
-// space/tap jump
-document.addEventListener("keydown", e=>{
-  if(starFalling && e.code==="Space" && invulnerableFrames<=0){
-    star.vy = -2.5;
-  }
-});
-
-document.addEventListener("pointerdown", ()=>{
-  if(starFalling && invulnerableFrames<=0){
-    star.vy = -2.5;
-  }
 });
