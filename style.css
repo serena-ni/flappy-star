@@ -1,4 +1,4 @@
-/* GLOBAL STYLES */
+/* ===== GLOBAL ===== */
 body {
   margin: 0;
   background: #000;
@@ -10,111 +10,111 @@ body {
   height: 100vh;
 }
 
-/* GAME CONTAINER */
+/* ===== GAME CONTAINER ===== */
 #game-container {
   position: relative;
   width: 420px;
   height: 640px;
 }
 
-/* CANVAS */
+/* ===== CANVAS ===== */
 #gameCanvas {
   display: block;
-  background: #000;
   width: 100%;
   height: 100%;
+  background: #000;
   border-radius: 14px;
-  box-shadow: 0 0 14px rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 14px rgba(255,255,255,0.18);
 }
 
-/* OVERLAYS (start, end, leaderboard) */
+/* ===== OVERLAYS (start, end, leaderboard) ===== */
 .overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0,0,0,0.65);
   backdrop-filter: blur(6px);
-  color: white;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  z-index: 20;
+  color: white;
+  z-index: 20; /* ensure overlays are above canvas */
 }
 
-/* hide overlays with .hidden class */
-.hidden { display: none; }
+.hidden {
+  display: none;
+}
 
-/* TITLES */
+/* ===== TITLES ===== */
 .title {
   font-size: 48px;
   font-weight: 600;
   letter-spacing: 2px;
   text-shadow: 0 0 14px rgba(255,255,200,0.5);
-  text-transform: lowercase;
 }
 
-.title.small { font-size: 36px; }
+.title.small {
+  font-size: 36px;
+}
 
-/* HINT TEXT */
+/* ===== HINT TEXT ===== */
 .hint {
   margin-top: 14px;
   font-size: 16px;
   opacity: 0.8;
-  text-transform: lowercase;
 }
 
-/* BUTTONS (start, restart, leaderboard, close) */
+/* ===== START / RESTART / LEADERBOARD BUTTONS ===== */
 .btn-start {
   width: 140px;
   height: 50px;
   border-radius: 24px;
   border: none;
-  background: linear-gradient(135deg, #fff7aa, #ffd76b);
-  background-size: 200% 200%;
-  box-shadow: 0 0 12px rgba(255,232,150,0.6);
-  transition: 0.3s ease;
   cursor: pointer;
+  background: linear-gradient(135deg, #fff7aa, #ffd76b);
+  box-shadow: 0 0 12px rgba(255,232,150,0.6);
   margin-top: 24px;
+  transition: all 0.3s ease;
   font-family: "Quicksand", sans-serif;
 }
 
 .btn-start:hover {
-  background-position: right; /* gold hover ripple effect */
   box-shadow: 0 0 18px rgba(255,240,180,0.75);
+  background-position: right; /* ripple effect can be added via JS later */
 }
 
 .btn-start span {
   font-size: 20px;
   font-weight: 600;
   color: #5a4900;
-  text-transform: lowercase;
 }
 
-.btn-start.smaller { width: 130px; height: 46px; }
+.btn-start.smaller {
+  width: 130px;
+  height: 46px;
+}
 
-/* PLAYER NAME INPUT */
-#player-name {
-  width: 260px;
-  padding: 14px 18px;
-  margin-bottom: 22px;
-  font-size: 18px;
-  font-family: "Quicksand", sans-serif;
-  text-align: center;
+/* ===== PLAYER NAME INPUT ===== */
+#playerNameInput {
+  margin-top: 14px;
+  padding: 6px 10px;
+  font-size: 16px;
+  border: 2px solid #ffd76b;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.05);
   color: #fff;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid #b99500;
-  border-radius: 10px;
+  text-align: center;
   outline: none;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  text-transform: lowercase;
+  width: 200px;
 }
 
-#player-name::placeholder { color: rgba(255,255,255,0.6); }
+/* placeholder text color */
+#playerNameInput::placeholder {
+  color: rgba(255,255,255,0.6);
+}
 
-/* SCORE DISPLAY */
+/* ===== SCORE DISPLAY ===== */
 #scoreDisplay {
   position: absolute;
   top: 12px;
@@ -129,38 +129,39 @@ body {
   border-radius: 8px;
   text-align: center;
   box-shadow: 0 0 12px rgba(255,232,150,0.6);
+  z-index: 10;
 }
 
-/* LEADERBOARD */
+/* ===== LEADERBOARD MODAL ===== */
 #leaderboardModal {
   position: absolute;
   inset: 0;
   background: rgba(0,0,0,0.85);
   backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
   padding: 20px;
-  color: white;
   overflow: auto;
+  color: white;
   z-index: 50;
 }
 
-#leaderboardModal.hidden { display: none; }
+#leaderboardModal.hidden {
+  display: none;
+}
 
+/* leaderboard row layout */
 .lb-row {
   display: flex;
   justify-content: space-between;
   padding: 6px 12px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   font-family: "Quicksand", sans-serif;
-  color: #fff;
 }
 
 .lb-num { width: 30px; text-align: left; }
 .lb-name { flex-grow: 1; margin-left: 6px; }
 .lb-score { width: 40px; text-align: right; }
 .lb-row.current { background: rgba(255,235,138,0.2); border-radius: 4px; }
-
-/* ensure hidden overlays are actually hidden */
-.overlay.hidden { display: none; }
