@@ -57,19 +57,23 @@ function resetGame(){
 startBtn.onclick = () => {
   if(gameStarted) return;
   gameStarted = true;
-  starFalling = false; // hover first
+  starFalling = false;
+  _frameCount = 0;
+
   startOverlay.classList.add("hidden");
   endOverlay.classList.add("hidden");
   leaderboardModal.classList.add("hidden");
+
+  // show canvas and score
+  canvas.style.display = "block";
   scoreDisplay.style.display = "block";
-  document.getElementById("game-container").classList.add("active");
 
   const nameVal = playerNameInput.value.trim();
   playerName = nameVal !== "" ? nameVal : "guest";
 
   resetGame();
   invulnerableFrames = 30;
-  animationId = requestAnimationFrame(gameLoop);
+  requestAnimationFrame(gameLoop);
 };
 
 // input handler
@@ -281,11 +285,24 @@ function endGame() {
 
 // restart & leaderboard
 restartBtn.onclick = () => {
+  // hide overlays
   endOverlay.classList.add("hidden");
   leaderboardModal.classList.add("hidden");
   startOverlay.classList.remove("hidden");
   playerNameInput.focus();
+
+  // reset game state
   resetGame();
+  gameStarted = false;
+  starFalling = false;
+
+  // hide the canvas temporarily and clear it to black
+  canvas.style.display = "none";
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // hide score
+  scoreDisplay.style.display = "none";
 };
 
 viewLeaderboardBtn.onclick = () => {
