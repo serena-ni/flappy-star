@@ -27,6 +27,24 @@ body {
   box-shadow: 0 0 14px rgba(255, 255, 255, 0.18);
 }
 
+/* score display */
+#scoreDisplay {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 215, 0, 0.15);
+  border: 2px solid #ffd76b;
+  border-radius: 12px;
+  padding: 6px 14px;
+  font-family: "Quicksand", sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  pointer-events: none;
+}
+
 /* overlays */
 .overlay {
   position: absolute;
