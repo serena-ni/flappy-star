@@ -1,4 +1,4 @@
-// ================= ELEMENTS =================
+// ===== ELEMENTS =====
 const startOverlay = document.getElementById("startOverlay");
 const startBtn = document.getElementById("startBtn");
 const playerNameInput = document.getElementById("playerNameInput");
@@ -13,7 +13,13 @@ const leaderboardModal = document.getElementById("leaderboardModal");
 const leaderboardList = document.getElementById("leaderboardList");
 const closeLeaderboardBtn = document.getElementById("closeLeaderboardBtn");
 
-// ================= GAME VARIABLES =================
+// ===== CANVAS =====
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = 420;
+canvas.height = 640;
+
+// ===== GAME STATE =====
 let gameStarted = false;
 let starFalling = false;
 let playerName = "Guest";
@@ -23,21 +29,15 @@ let particles = [];
 let starsBackground = [];
 let shootingStars = [];
 
-// ================= CANVAS =================
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-canvas.width = 420;
-canvas.height = 640;
-
-// ================= STAR =================
+// ===== STAR =====
 let star = { x:100, y:canvas.height/2, radius:12, vy:0, gravity:0.12, maxVy:2.5, bobOffset:0, bobDir:1 };
 
-// ================= INITIALIZE BACKGROUND STARS =================
-for (let i=0;i<60;i++){
+// ===== INITIALIZE BACKGROUND STARS =====
+for (let i=0;i<50;i++){
   starsBackground.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2+1});
 }
 
-// ================= FUNCTIONS =================
+// ===== GAME FUNCTIONS =====
 function resetGame(){
   star.y = canvas.height/2;
   star.vy = 0;
@@ -49,7 +49,7 @@ function resetGame(){
   shootingStars = [];
 }
 
-// ================= START GAME =================
+// ===== START GAME =====
 function startGame(){
   if(gameStarted) return;
   gameStarted = true;
@@ -62,26 +62,23 @@ function startGame(){
   playerName = nameVal !== "" ? nameVal : "Guest";
 
   resetGame();
-  starFalling = false; // bobbing first
+  starFalling = false;
   requestAnimationFrame(gameLoop);
 }
 
-startBtn.onclick = () => { startGame(); starFalling = true; };
+startBtn.onclick = ()=>{ startGame(); starFalling=true; };
 
 document.addEventListener("keydown", e=>{
-  if(!gameStarted){
-    if(e.code==="Space"||e.code==="Enter"){ startGame(); starFalling = true; }
-  } else if(starFalling && e.code==="Space"){
-    star.vy=-2.5;
-  }
+  if(!gameStarted && (e.code==="Space"||e.code==="Enter")) startGame(), starFalling=true;
+  else if(starFalling && e.code==="Space") star.vy=-2.5;
 });
 
 document.addEventListener("pointerdown", ()=>{
-  if(!gameStarted){ startGame(); starFalling=true; }
-  else if(starFalling){ star.vy=-2.5; }
+  if(!gameStarted) startGame(), starFalling=true;
+  else if(starFalling) star.vy=-2.5;
 });
 
-// ================= GAME LOOP =================
+// ===== GAME LOOP =====
 function gameLoop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawBackground();
@@ -93,12 +90,12 @@ function gameLoop(){
   if(gameStarted) requestAnimationFrame(gameLoop);
 }
 
-// ================= DRAW BACKGROUND =================
+// ===== BACKGROUND =====
 function drawBackground(){
   ctx.fillStyle="#000";
   ctx.fillRect(0,0,canvas.width,canvas.height);
   starsBackground.forEach(s=>{
-    s.x-=0.2;
+    s.x-=0.1; // slight movement
     if(s.x<0) s.x=canvas.width;
     ctx.beginPath();
     ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
@@ -107,11 +104,11 @@ function drawBackground(){
   });
 }
 
-// ================= STAR =================
+// ===== STAR =====
 function updateStar(){
   if(!starFalling){
     star.bobOffset+=0.5*star.bobDir;
-    if(star.bobOffset>4 || star.bobOffset<-4) star.bobDir*=-1;
+    if(star.bobOffset>4||star.bobOffset<-4) star.bobDir*=-1;
     star.y = canvas.height/2 + star.bobOffset;
     return;
   }
@@ -120,16 +117,15 @@ function updateStar(){
   if(star.vy>star.maxVy) star.vy=star.maxVy;
   star.y+=star.vy;
 
-  let trailClass = "slow";
-  if(star.vy>1.5) trailClass="fast";
-  else if(star.vy>0.75) trailClass="medium";
+  // trail based on velocity
+  let trailSize = star.vy*1.5+1;
+  particles.push({x:star.x, y:star.y, vx:(Math.random()-0.5)*0.2, vy:0, r:trailSize, life:20});
 
-  particles.push({x:star.x,y:star.y,vx:(Math.random()-0.5)*0.2,vy:0,r: Math.random()*(star.vy+1)*2,life:20,type:trailClass});
-
-  if(Math.random()<0.001) shootingStars.push({x:canvas.width, y:Math.random()*canvas.height/2, vx:-4, vy:0, r:3, life:60});
+  // rare shooting star
+  if(Math.random()<0.002) shootingStars.push({x:canvas.width, y:Math.random()*canvas.height/2, vx:-4, vy:0, r:3, life:60});
 
   if(star.y+star.radius>canvas.height){
-    createExplosion(star.x, star.y);
+    createExplosion(star.x,star.y);
     shakeScreen();
     endGame();
   }
@@ -142,12 +138,12 @@ function drawStar(){
   ctx.fill();
 }
 
-// ================= PIPES =================
+// ===== PIPES =====
 let pipeGap = 140;
 let pipeSpacing = 280;
 
 function updatePipes(){
-  if(pipes.length===0 || pipes[pipes.length-1].x<canvas.width-pipeSpacing){
+  if(pipes.length===0||pipes[pipes.length-1].x<canvas.width-pipeSpacing){
     let topH = Math.random()*(canvas.height/2)+60;
     pipes.push({x:canvas.width, top:topH, bottom:canvas.height-topH-pipeGap, passed:false});
   }
@@ -171,24 +167,16 @@ function updatePipes(){
   });
 }
 
-// ================= PARTICLES =================
+// ===== PARTICLES =====
 function createExplosion(x,y){
   for(let i=0;i<15;i++){
-    particles.push({
-      x:x, y:y,
-      vx:(Math.random()-0.5)*4,
-      vy:(Math.random()-0.5)*4,
-      r: Math.random()*3+1,
-      life:30
-    });
+    particles.push({x:x,y:y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,r:Math.random()*3+1,life:30});
   }
 }
 
 function updateParticles(){
   particles.forEach((p,i)=>{
-    p.x+=p.vx;
-    p.y+=p.vy;
-    p.life--;
+    p.x+=p.vx; p.y+=p.vy; p.life--;
     ctx.beginPath();
     ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
     ctx.fillStyle="#ffeb8a";
@@ -197,9 +185,7 @@ function updateParticles(){
   });
 
   shootingStars.forEach((s,i)=>{
-    s.x+=s.vx;
-    s.y+=s.vy;
-    s.life--;
+    s.x+=s.vx; s.y+=s.vy; s.life--;
     ctx.beginPath();
     ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
     ctx.fillStyle="#fff";
@@ -208,19 +194,18 @@ function updateParticles(){
   });
 }
 
-// ================= SCREEN SHAKE =================
+// ===== SCREEN SHAKE =====
 function shakeScreen(){
   canvas.style.transform=`translate(${Math.random()*6-3}px,${Math.random()*6-3}px)`;
   setTimeout(()=>{canvas.style.transform="";},50);
 }
 
-// ================= END GAME =================
+// ===== END GAME =====
 function endGame(){
   gameStarted=false;
   starFalling=false;
   endOverlay.classList.remove("hidden");
-  endOverlay.style.display="flex";
-  finalScoreEl.textContent = `Score: ${score}`;
+  finalScoreEl.textContent=`Score: ${score}`;
   saveScore();
 }
 
@@ -232,7 +217,7 @@ restartBtn.onclick = () => {
   resetGame();
 };
 
-viewLeaderboardBtn.onclick = (e) => {
+viewLeaderboardBtn.onclick = (e)=>{
   e.stopPropagation();
   populateLeaderboard();
   leaderboardModal.classList.remove("hidden");
@@ -244,7 +229,7 @@ closeLeaderboardBtn.onclick = () => {
   endOverlay.style.display="flex";
 };
 
-// ================= LEADERBOARD =================
+// ===== LEADERBOARD =====
 function saveScore(){
   const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
   board.push({name:playerName, score});
@@ -254,7 +239,7 @@ function saveScore(){
 
 function populateLeaderboard(){
   const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
-  leaderboardList.innerHTML = "";
+  leaderboardList.innerHTML="";
   let addedCurrent=false;
 
   board.forEach((entry,i)=>{
@@ -280,7 +265,7 @@ function populateLeaderboard(){
   }
 }
 
-// ================= PAGE LOAD INITIALIZATION =================
+// ===== PAGE LOAD =====
 document.addEventListener("DOMContentLoaded", ()=>{
   gameStarted=false;
   starFalling=false;
