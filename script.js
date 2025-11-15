@@ -10,6 +10,7 @@ let gameActive = false;
 let gameStarted = false;
 let gameOver = false;
 let score = 0;
+let shakeOffset = { x: 0, y: 0 };
 
 // ===== STAR (PLAYER) =====
 const star = {
@@ -24,6 +25,10 @@ const star = {
   hidden: false
 };
 
+// ===== PARTICLES =====
+let starTrail = [];
+let shatterParticles = [];
+
 // ===== PARALLAX STARFIELD =====
 const starLayers = [
   { speed: 0.15, stars: [] },
@@ -32,10 +37,9 @@ const starLayers = [
 ];
 
 function initStarfield() {
-  // clear existing stars
-  starLayers.forEach(layer => layer.stars = []);
+  starLayers.forEach((layer, idx) => layer.stars = []);
 
-  // Layer 0: farthest, slowest, smallest, more sparse
+  // layer 0 - far
   for (let i = 0; i < 50; i++) {
     starLayers[0].stars.push({
       x: Math.random() * canvas.width,
@@ -45,7 +49,7 @@ function initStarfield() {
     });
   }
 
-  // Layer 1: middle layer
+  // layer 1 - mid
   for (let i = 0; i < 40; i++) {
     starLayers[1].stars.push({
       x: Math.random() * canvas.width,
@@ -55,7 +59,7 @@ function initStarfield() {
     });
   }
 
-  // Layer 2: closest, fastest, slightly larger
+  // layer 2 - front
   for (let i = 0; i < 30; i++) {
     starLayers[2].stars.push({
       x: Math.random() * canvas.width,
@@ -149,9 +153,36 @@ function updatePipes() {
   pipes = pipes.filter(p => p.x + pipeWidth > 0);
 }
 
-// ===== SHATTER =====
-let shatterParticles = [];
+// ===== STAR TRAIL =====
+function spawnStarTrail() {
+  if (star.hidden || !gameStarted) return;
+  const speedFactor = Math.min(Math.abs(star.velocity) / 6, 1);
 
+  starTrail.push({
+    x: star.x - 5 + Math.random() * 10,
+    y: star.y - 5 + Math.random() * 10,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3,
+    radius: (Math.random() * 2 + 1) * (0.7 + 0.3 * speedFactor),
+    alpha: 0.8
+  });
+}
+
+function drawStarTrail() {
+  starTrail.forEach((p, i) => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.alpha -= 0.02;
+    p.radius *= 0.97;
+    ctx.fillStyle = `rgba(255,235,170,${p.alpha})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+    ctx.fill();
+    if (p.alpha <= 0 || p.radius <= 0.3) starTrail.splice(i, 1);
+  });
+}
+
+// ===== SHATTER =====
 function createShatter(x, y) {
   for (let i = 0; i < 22; i++) {
     shatterParticles.push({
@@ -207,6 +238,19 @@ function endGame() {
   star.hidden = true;
   star.velocity = 0;
 
+  // screen shake
+  let shakeFrames = 12;
+  let shakeInterval = setInterval(() => {
+    shakeOffset.x = (Math.random() - 0.5) * 6;
+    shakeOffset.y = (Math.random() - 0.5) * 6;
+    shakeFrames--;
+    if (shakeFrames <= 0) {
+      clearInterval(shakeInterval);
+      shakeOffset.x = 0;
+      shakeOffset.y = 0;
+    }
+  }, 16);
+
   document.getElementById("final-score").textContent = `Score: ${score}`;
   setTimeout(() => {
     document.getElementById("game-over-screen").style.display = "flex";
@@ -217,13 +261,12 @@ function resetGame() {
   gameActive = false;
   gameStarted = false;
   gameOver = false;
-
   star.y = canvas.height * 0.5;
   star.velocity = 0;
   star.hidden = false;
-
   pipes = [];
   shatterParticles = [];
+  starTrail = [];
   score = 0;
 
   document.getElementById("game-over-screen").style.display = "none";
@@ -241,7 +284,6 @@ document.addEventListener("keydown", e => {
   if (e.code === "Space") flap();
 });
 canvas.addEventListener("pointerdown", flap);
-
 document.getElementById("restart-btn").addEventListener("click", resetGame);
 document.querySelector("#start-screen .btn-start").addEventListener("click", startGame);
 
@@ -250,12 +292,17 @@ let pipeTimer = 0;
 
 function update() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(shakeOffset.x, shakeOffset.y);
 
   drawStarfield();
   spawnShootingStar();
   drawShootingStars();
+  spawnStarTrail();
+  drawStarTrail();
 
   if (!gameActive && !gameStarted) {
+    ctx.restore();
     requestAnimationFrame(update);
     return;
   }
@@ -280,6 +327,24 @@ function update() {
   updatePipes();
   drawPipes();
 
+  // rare spark explosion through tight pipe
+  pipes.forEach(pipe => {
+    const gapHeight = pipe.bottom - pipe.top;
+    if (!pipe.passed && star.x > pipe.x && star.x < pipe.x + pipeWidth) {
+      if (gapHeight < 200 && Math.random() < 0.02) {
+        for (let i = 0; i < 15; i++) {
+          shatterParticles.push({
+            x: star.x,
+            y: star.y,
+            vx: (Math.random() - 0.5) * 4,
+            vy: (Math.random() - 0.5) * 4,
+            life: 1
+          });
+        }
+      }
+    }
+  });
+
   if (gameActive) checkCollision();
 
   if (!star.hidden) {
@@ -299,6 +364,7 @@ function update() {
   ctx.strokeText(score, canvas.width / 2 - 10, 80);
   ctx.fillText(score, canvas.width / 2 - 10, 80);
 
+  ctx.restore();
   requestAnimationFrame(update);
 }
 
