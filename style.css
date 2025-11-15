@@ -20,56 +20,70 @@ body {
   height: 640px;
 }
 
-/* canvas */
+/* game canvas */
 #gameCanvas {
   width: 100%;
   height: 100%;
+  border-radius: 14px;
   display: block;
   background: #000;
+  box-shadow: 0 0 16px rgba(255,255,255,0.18);
+  z-index: 1;
+}
+
+/* STARFIELD BACKGROUND — placed BEHIND canvas */
+#starfield {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   border-radius: 14px;
-  box-shadow: 0 0 16px rgba(255, 255, 255, 0.18);
 }
 
 /* OVERLAYS (start, end, leaderboard) */
 .overlay {
   position: absolute;
   inset: 0;
+  z-index: 10;
+
   background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
+
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: white;
   text-align: center;
+
+  color: white;
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .title {
   font-size: 48px;
   font-weight: 600;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   text-shadow: 0 0 14px rgba(255,255,200,0.6);
 }
 
 .title.small {
-  font-size: 32px;
+  font-size: 34px;
 }
 
+/* HINT TEXT */
 .hint {
-  margin-top: 10px;
+  margin-top: 12px;
   font-size: 16px;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
-/* INPUT FIELD (Name on Start Screen) */
+/* NAME INPUT FIELD */
 #player-name-input {
   margin-top: 18px;
-  padding: 10px 14px;
   width: 200px;
+  padding: 10px 14px;
 
   background: rgba(255,255,255,0.12);
   border: 2px solid gold;
@@ -78,12 +92,14 @@ body {
   color: gold;
   font-size: 18px;
   text-align: center;
+
   outline: none;
   transition: 0.25s ease;
+  z-index: 11;
 }
 
 #player-name-input::placeholder {
-  color: rgba(255, 215, 0, 0.55);
+  color: rgba(255,215,0,0.55);
 }
 
 #player-name-input:focus {
@@ -91,7 +107,7 @@ body {
   box-shadow: 0 0 10px gold;
 }
 
-/* GOLD BUTTONS (inspired by Uiverse)*/
+/* GOLD BUTTONS (Uiverse-inspired) */
 .btn {
   position: relative;
   overflow: hidden;
@@ -109,13 +125,15 @@ body {
 
   cursor: pointer;
   transition: 0.25s ease;
-  box-shadow: 0 0 14px rgba(255, 224, 120, 0.6);
   margin-top: 20px;
+
+  box-shadow: 0 0 14px rgba(255,224,120,0.6);
+  z-index: 11;
 }
 
-/* hover glow */
+/* hover shine */
 .btn:hover {
-  box-shadow: 0 0 22px rgba(255, 240, 180, 0.9);
+  box-shadow: 0 0 22px rgba(255,240,180,0.9);
   transform: translateY(-2px);
 }
 
@@ -127,9 +145,9 @@ body {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  transform: scale(0);
   opacity: 0;
   pointer-events: none;
+  transform: scale(0);
   transition: transform 0.5s ease, opacity 0.8s ease;
 }
 
@@ -138,22 +156,14 @@ body {
   transform: scale(18);
 }
 
-/* restart button = primary */
-#restart-btn {
-  background: linear-gradient(135deg, #ffeaa8, #ffd772, #ffcf5a);
-  font-size: 21px;
-  box-shadow: 0 0 18px rgba(255, 235, 170, 0.8);
-}
-
-/*SCORE BOX */
+/* SCORE BOX */
 #score-display {
   position: absolute;
-  top: 10px;
+  top: 12px;
   left: 50%;
   transform: translateX(-50%);
 
   padding: 6px 14px;
-
   background: rgba(0,0,0,0.35);
   border: 2px solid gold;
   border-radius: 14px;
@@ -161,17 +171,18 @@ body {
   color: gold;
   font-size: 28px;
   font-weight: 600;
-  text-shadow: 0 0 6px rgba(255,255,150,0.6);
 
-  pointer-events: none;
-  user-select: none;
+  text-shadow: 0 0 6px rgba(255,255,150,0.6);
+  z-index: 5;
 }
 
-/* LEADERBOARD MODAL*/
+/* LEADERBOARD MODAL */
 #leaderboard-modal {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.82);
+  z-index: 20;
+
+  background: rgba(0,0,0,0.80);
   backdrop-filter: blur(10px);
 
   display: flex;
@@ -179,45 +190,38 @@ body {
   justify-content: center;
   align-items: center;
 
-  color: white;
-  text-align: center;
   padding: 20px;
 }
 
 #leaderboard-box {
   width: 300px;
   max-width: 90%;
+  padding: 18px 22px;
+  border-radius: 16px;
 
   background: rgba(255,255,255,0.07);
   border: 2px solid gold;
-  border-radius: 16px;
-  padding: 20px 20px 14px;
-
   box-shadow: 0 0 14px rgba(255,215,100,0.5);
 }
 
 #leaderboard-title {
   font-size: 32px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   text-shadow: 0 0 10px rgba(255,255,200,0.5);
 }
 
-/* leaderboard list */
 #leaderboard-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  text-align: left;
 }
 
 #leaderboard-list li {
   padding: 6px 10px;
-  font-size: 18px;
-
   display: flex;
   justify-content: space-between;
-  gap: 20px;
 
+  font-size: 18px;
   color: gold;
 }
 
@@ -226,9 +230,10 @@ body {
   border-radius: 8px;
 }
 
-/* STARFIELD BACKGROUND CANVAS (behind everything) */
-#starfield {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
+/* END SCREEN BUTTON CONTAINER */
+.end-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
 }
