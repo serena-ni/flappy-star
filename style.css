@@ -10,7 +10,7 @@ body {
   height: 100vh;
 }
 
-/* game container */
+/* container */
 #game-container {
   position: relative;
   width: 420px;
@@ -20,135 +20,114 @@ body {
 /* canvas */
 #gameCanvas {
   display: block;
-  background: #000;
   width: 100%;
-  height: auto; /* fixes stretching */
+  height: 100%;
+  background: #000;
   border-radius: 14px;
-  box-shadow: 0 0 14px rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 14px rgba(255,255,255,0.18);
 }
 
 /* overlays */
 .overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0,0,0,0.65);
   backdrop-filter: blur(6px);
   color: white;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  text-align: center;
 }
 
 .hidden {
   display: none;
 }
 
-/* title styling */
+/* title */
 .title {
   font-size: 48px;
   font-weight: 600;
   letter-spacing: 2px;
   text-shadow: 0 0 14px rgba(255,255,200,0.5);
+  margin-bottom: 20px;
 }
 
 .title.small {
   font-size: 36px;
 }
 
-/* hint text */
-.hint {
-  margin-top: 14px;
-  font-size: 16px;
-  opacity: 0.8;
-}
-
-/* ===== UIVERSE BUTTON (theme) ===== */
+/* start button */
 .btn-start {
-  width: 140px;
-  height: 50px;
+  width: 150px;
+  height: 52px;
   border-radius: 24px;
   border: none;
   background: linear-gradient(135deg, #fff7aa, #ffe07a, #ffd76b);
   background-size: 200% 200%;
-  box-shadow: 0 0 12px rgba(255, 232, 150, 0.6);
+  box-shadow: 0 0 12px rgba(255,232,150,0.6);
   transition: 0.3s ease;
   cursor: pointer;
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
 .btn-start:hover {
   background-position: right;
-  box-shadow: 0 0 18px rgba(255, 240, 180, 0.75);
+  box-shadow: 0 0 18px rgba(255,240,180,0.75);
 }
 
 .btn-start span {
   font-size: 20px;
-  font-weight: 600;
   color: #5a4900;
+  font-weight: 600;
 }
 
-/* smaller restart version */
 .btn-start.smaller {
   width: 130px;
   height: 46px;
 }
 
-/* final score */
-#final-score {
-  margin-top: 10px;
-  font-size: 24px;
-  font-weight: 600;
-  color: #fff8e8;
-  text-shadow: 0 0 6px rgba(255,235,170,0.8);
-  opacity: 1;
-}
-
-/* input name text box */
+/* input box */
 .btn-input {
   width: 200px;
   height: 50px;
   border-radius: 24px;
-  border: 2px solid #ffd76b; /* soft gold border */
-  background: rgba(255, 255, 255, 0.15); /* slightly transparent white */
+  border: 2px solid #ffd76b;
+  background: rgba(255,255,255,0.15);
   font-family: "Quicksand", sans-serif;
   font-size: 20px;
   font-weight: 600;
-  color: #fff8e8; /* pale golden-white text */
+  color: #fff8e8;
   text-align: center;
   padding: 0 14px;
-  margin-top: 14px;
-  transition: 0.3s ease, background 0.3s ease;
+  margin-top: 10px;
   outline: none;
+  transition: 0.3s ease;
 }
 
 .btn-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255,255,255,0.6);
 }
 
 .btn-input:hover {
-  background: rgba(255, 255, 255, 0.25); /* slightly brighter on hover */
-  box-shadow: 0 0 12px rgba(255, 215, 107, 0.6); /* subtle gold glow */
+  background: rgba(255,255,255,0.25);
+  box-shadow: 0 0 12px rgba(255,215,107,0.6);
 }
 
-/* leaderboard modal */
-#leaderboard-modal {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  backdrop-filter: blur(4px);
-  z-index: 10;
+/* leaderboard box */
+#leaderboard-box {
+  background: rgba(0,0,0,0.85);
+  padding: 24px;
+  width: 300px;
+  border-radius: 16px;
+  text-align: center;
 }
 
 #leaderboard-box li {
-  font-size: 18px;
   margin: 6px 0;
+  font-size: 18px;
 }
 
-/* highlight current player */
 #leaderboard-box li.current {
   color: #ffd76b;
   font-weight: 700;
