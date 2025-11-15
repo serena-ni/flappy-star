@@ -12,32 +12,33 @@
 <div id="game-container">
   <canvas id="gameCanvas"></canvas>
 
-  <!-- START OVERLAY -->
-  <div id="startOverlay" class="overlay">
-    <div class="title">flappy star</div>
-    <input type="text" id="playerNameInput" placeholder="Enter your name" />
-    <button class="btn-start" id="startBtn"><span>start</span></button>
-    <div class="hint">tap or press space to start</div>
-  </div>
-
-  <!-- END OVERLAY -->
-  <div id="endOverlay" class="overlay hidden">
-    <div class="title small">game over</div>
-    <div id="final-score">score: 0</div>
-    <button class="btn-start smaller" id="restartBtn"><span>restart</span></button>
-    <button class="btn-start smaller" id="viewLeaderboardBtn"><span>leaderboard</span></button>
-  </div>
-
-  <!-- SCORE DISPLAY -->
-  <div id="scoreDisplay" style="display:none">0</div>
-
-  <!-- LEADERBOARD MODAL -->
-  <div id="leaderboardModal" class="overlay hidden">
-    <div class="title small">leaderboard</div>
-    <div id="leaderboardList"></div>
-    <button class="btn-start smaller" id="closeLeaderboardBtn"><span>close</span></button>
-  </div>
+<!-- start overlay -->
+<div id="startOverlay" class="overlay">
+  <h1 class="title">flappy star</h1>
+  <input type="text" id="playerNameInput" placeholder="Enter your name" />
+  <button id="startBtn" class="btn-start"><span>Start</span></button>
+  <p class="hint">tap or press space to start</p>
 </div>
+
+<!-- game canvas -->
+<canvas id="gameCanvas"></canvas>
+<div id="scoreDisplay" class="score-display">0</div>
+
+<!-- end overlay -->
+<div id="endOverlay" class="overlay hidden">
+  <h2 class="title small">game over</h2>
+  <div id="final-score">score: 0</div>
+  <button id="restartBtn" class="btn-start smaller"><span>restart</span></button>
+  <button id="viewLeaderboardBtn" class="btn-start smaller"><span>leaderboard</span></button>
+</div>
+
+<!-- leaderboard modal -->
+<div id="leaderboardModal" class="overlay hidden">
+  <h2 class="title small">leaderboard</h2>
+  <div id="leaderboardList"></div>
+  <button id="closeLeaderboardBtn" class="btn-start smaller"><span>close</span></button>
+</div>
+
 
 <script src="script.js"></script>
 </body>

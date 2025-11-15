@@ -232,16 +232,16 @@ restartBtn.onclick = () => {
   resetGame();
 };
 
-viewLeaderboardBtn.onclick = (e) => {
-  e.stopPropagation();
+viewLeaderboardBtn.onclick = () => {
   populateLeaderboard();
   leaderboardModal.classList.remove("hidden");
-  endOverlay.style.display="none";
+  endOverlay.style.display = "none"; // temporarily hide end overlay
 };
+
 
 closeLeaderboardBtn.onclick = () => {
   leaderboardModal.classList.add("hidden");
-  endOverlay.style.display="flex";
+  endOverlay.classList.remove("hidden"); // show end overlay again if game ended
 };
 
 // LEADERBOARD

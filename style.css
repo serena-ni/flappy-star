@@ -42,6 +42,7 @@ body {
 }
 
 .hidden { display: none; }
+.overlay { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; }
 
 /* ===== TITLES ===== */
 .title { font-size: 48px; font-weight: 600; letter-spacing: 2px; text-shadow: 0 0 14px rgba(255,255,200,0.5); }
