@@ -2,6 +2,7 @@
 const startOverlay = document.getElementById("startOverlay");
 const startBtn = document.getElementById("startBtn");
 const playerNameInput = document.getElementById("playerNameInput");
+const scoreDisplay = document.getElementById("scoreDisplay");
 
 let playerName = "Guest";
 let gameStarted = false;
@@ -15,6 +16,9 @@ function startGame() {
 
   startOverlay.classList.add("hidden");
   endOverlay.classList.add("hidden");
+  leaderboardModal.classList.add("hidden");
+  scoreDisplay.style.display = "block";
+
   resetGame();
   requestAnimationFrame(gameLoop);
 }
@@ -26,7 +30,6 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault();
     startGame();
   } else if (gameStarted && e.code === "Space") {
-    // flap
     star.vy = -2.5;
   }
 });
@@ -42,29 +45,13 @@ const ctx = canvas.getContext("2d");
 canvas.width = 420;
 canvas.height = 640;
 
-// ================= STAR =================
-let star = {
-  x: 100,
-  y: canvas.height/2,
-  radius: 12,
-  vy: 0,
-  gravity: 0.12,
-  maxVy: 3,
-  bobOffset: 0,
-  bobDir: 1
-};
+let star = { x:100, y:canvas.height/2, radius:12, vy:0, gravity:0.12, maxVy:3, bobOffset:0, bobDir:1 };
+let pipes=[], pipeGap=140, pipeSpacing=280, score=0;
+let particles=[], starsBackground=[], shootingStars=[];
 
-let pipes = [];
-let pipeGap = 140;
-let pipeSpacing = 280;
-let score = 0;
-let particles = [];
-let starsBackground = [];
-let shootingStars = [];
-
-// ================= INIT STARS =================
+// init background stars
 for (let i=0;i<60;i++){
-  starsBackground.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2 +1});
+  starsBackground.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2+1});
 }
 
 // ================= GAME LOOP =================
@@ -85,16 +72,18 @@ function gameLoop(){
   updatePipes();
   updateParticles();
   drawStar();
-  drawScore();
-
+  scoreDisplay.textContent = score;
   if(gameStarted) requestAnimationFrame(gameLoop);
 }
 
+// background with slow movement
 function drawBackground(){
   ctx.fillStyle="#000";
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
   starsBackground.forEach(s=>{
+    s.x -= 0.2;
+    if(s.x<0) s.x=canvas.width;
     ctx.beginPath();
     ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
     ctx.fillStyle="#fff";
@@ -111,10 +100,12 @@ function updateStar(){
   }
 
   star.vy += star.gravity;
-  if(star.vy>star.maxVy) star.vy = star.maxVy;
+  if(star.vy>star.maxVy) star.vy=star.maxVy;
   star.y += star.vy;
 
-  // bottom collision
+  // trail particles
+  particles.push({x:star.x, y:star.y, vx:(Math.random()-0.5)*0.2, vy:0, r: Math.random()*(star.vy+1)*2, life:20});
+
   if(star.y+star.radius>canvas.height){
     createExplosion(star.x, star.y);
     shakeScreen();
@@ -129,16 +120,9 @@ function drawStar(){
   ctx.fill();
 }
 
-function drawScore(){
-  ctx.fillStyle = "#fff";
-  ctx.font = "24px Quicksand";
-  ctx.textAlign = "right";
-  ctx.fillText(score, canvas.width - 20, 40);
-}
-
 function updatePipes(){
-  if(pipes.length==0 || pipes[pipes.length-1].x<canvas.width-pipeSpacing){
-    let topH = Math.random()*(canvas.height/2) + 60;
+  if(pipes.length===0 || pipes[pipes.length-1].x<canvas.width-pipeSpacing){
+    let topH = Math.random()*(canvas.height/2)+60;
     pipes.push({x:canvas.width, top:topH, bottom:canvas.height-topH-pipeGap});
   }
 
@@ -217,10 +201,10 @@ restartBtn.onclick = () => {
 };
 
 viewLeaderboardBtn.onclick = (e) => {
-  e.stopPropagation(); // prevent bubbling
+  e.stopPropagation();
   populateLeaderboard();
   leaderboardModal.classList.remove("hidden");
-  endOverlay.style.display = "none"; // hide end overlay
+  endOverlay.style.display = "none";
 };
 
 closeLeaderboardBtn.onclick = () => {
@@ -231,7 +215,7 @@ closeLeaderboardBtn.onclick = () => {
 function saveScore() {
   const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
   board.push({name:playerName, score});
-  board.sort((a,b)=>b.score-a.score);
+  board.sort((a,b)=>b.score-b.score);
   localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board.slice(0,50)));
 }
 
