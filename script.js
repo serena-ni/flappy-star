@@ -158,39 +158,46 @@ let pipeGap = 140;
 let pipeSpacing = 280;
 
 function updatePipes(){
-  if(pipes.length===0 || pipes[pipes.length-1].x < canvas.width - pipeSpacing){
+  if(pipes.length === 0 || pipes[pipes.length-1].x < canvas.width - pipeSpacing){
     let topH = Math.random()*(canvas.height/2)+60;
-    pipes.push({x:canvas.width, top:topH, bottom:canvas.height-topH-pipeGap, passed:false});
+    pipes.push({x:canvas.width, top:topH, bottom:canvas.height-topH-pipeGap, passed:false, wobble: Math.random()*2});
   }
 
   pipes.forEach((p,i)=>{
     p.x -= 2;
+
+    // subtle wobble effect
+    p.wobble = Math.sin(Date.now()/200 + i) * 2;
+
     let x = Math.round(p.x);
+    let w = 40;
+    let topHeight = p.top + p.wobble;
+    let bottomHeight = p.bottom + p.wobble;
 
     // top pipe gradient
-    let topGrad = ctx.createLinearGradient(x,0,x+40,p.top);
+    let topGrad = ctx.createLinearGradient(x,0,x+w,topHeight);
     topGrad.addColorStop(0,"#33aaff");
     topGrad.addColorStop(1,"#0077cc");
     ctx.fillStyle = topGrad;
-    ctx.fillRect(x,0,40,p.top);
+    ctx.fillRect(x,0,w,topHeight);
 
-    // subtle top highlight stripe
+    // subtle highlight stripe
     ctx.fillStyle = "rgba(255,255,255,0.1)";
-    ctx.fillRect(x+5,0,30,p.top);
+    ctx.fillRect(x+5,0,w-10,topHeight);
 
     // bottom pipe gradient
-    let bottomGrad = ctx.createLinearGradient(x,canvas.height-p.bottom,x+40,canvas.height);
+    let bottomGrad = ctx.createLinearGradient(x,canvas.height-bottomHeight,x+w,canvas.height);
     bottomGrad.addColorStop(0,"#0077cc");
     bottomGrad.addColorStop(1,"#33aaff");
     ctx.fillStyle = bottomGrad;
-    ctx.fillRect(x,canvas.height-p.bottom,40,p.bottom);
+    ctx.fillRect(x,canvas.height-bottomHeight,w,bottomHeight);
 
     // subtle bottom highlight stripe
     ctx.fillStyle = "rgba(255,255,255,0.1)";
-    ctx.fillRect(x+5,canvas.height-p.bottom,30,p.bottom);
+    ctx.fillRect(x+5,canvas.height-bottomHeight,w-10,bottomHeight);
 
     // collision
-    if(starFalling && invulnerableFrames<=0 && star.x+star.radius>p.x && star.x-star.radius<p.x+40){
+    if(starFalling && invulnerableFrames<=0 && star.x+star.radius>p.x && star.x-star.radius<p.x+w){
       if(star.y-star.radius<p.top || star.y+star.radius>canvas.height-p.bottom){
         createExplosion(star.x,star.y);
         shakeScreen();
@@ -198,8 +205,11 @@ function updatePipes(){
       }
     }
 
-    if(p.x+40<0) pipes.splice(i,1);
-    if(p.x+40<star.x && !p.passed){ score++; p.passed=true; }
+    // remove offscreen pipes
+    if(p.x+w<0) pipes.splice(i,1);
+
+    // scoring
+    if(p.x+w<star.x && !p.passed){ score++; p.passed=true; }
   });
 }
 

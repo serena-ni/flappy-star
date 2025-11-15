@@ -1,145 +1,180 @@
-/* global */
+/* GENERAL STYLES */
 body {
   margin: 0;
+  font-family: 'Quicksand', sans-serif;
   background: #000;
-  font-family: "Quicksand", sans-serif;
-  overflow: hidden;
+  color: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
 
-/* game container */
-#game-container {
-  position: relative;
-  width: 420px;
-  height: 640px;
-}
-
-/* canvas */
-#gameCanvas {
+canvas {
   display: block;
   background: #000;
-  width: 100%;
-  height: 100%;
-  border-radius: 14px;
-  box-shadow: 0 0 14px rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
 }
 
-/* overlay */
+/* OVERLAYS */
 .overlay {
   position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.65);
-  backdrop-filter: blur(6px);
-  color: white;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  text-align: center;
-  z-index: 20;
+  z-index: 10;
 }
 
-.hidden { display: none; }
+.overlay.hidden {
+  display: none;
+}
 
-/* titles */
-.title { font-size: 48px; font-weight: 600; letter-spacing: 2px; text-shadow: 0 0 14px rgba(255,255,200,0.5); font-family: "Quicksand", sans-serif;}
-.title.small { font-size: 36px; }
+.title {
+  font-size: 2rem;
+  margin-bottom: 16px;
+}
 
-/* hint text */
-.hint { margin-top: 14px; font-size: 16px; opacity: 0.8; }
+.title.small {
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+}
 
-/* buttons */
+.hint {
+  font-size: 0.9rem;
+  margin-top: 12px;
+  color: #ffeb8a;
+}
+
+/* TEXT BOX */
+#playerNameInput {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 2px solid #ffeb8a; /* light gold border */
+  background: #111;
+  color: #fff;
+  width: 200px;
+  margin-bottom: 16px; /* space between text box and start button */
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+#playerNameInput::placeholder {
+  color: #ffeb8a; /* matches button gold */
+  font-weight: 400;
+}
+
+#playerNameInput:focus {
+  border-color: #fff176; /* slightly lighter gold on focus */
+  box-shadow: 0 0 8px #fff176;
+}
+
+/* BUTTON STYLING */
 .btn-start {
-  width: 140px; height: 50px; border-radius: 24px;
-  border: none; cursor: pointer;
-  background: linear-gradient(135deg, #fff7aa, #ffd76b);
-  font-family: "Quicksand", sans-serif;
-  box-shadow: 0 0 12px rgba(255,232,150,0.6);
-  margin-top: 24px;
-  transition: 0.3s ease;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
   position: relative;
   overflow: hidden;
+  transition: transform 0.1s, box-shadow 0.1s, background 0.2s;
+  border-radius: 12px;
 }
-.btn-start span {
-  font-size: 20px;
-  font-weight: 600;
-  color: #5a4900;
+
+/* START BUTTON */
+#startBtn {
+  font-size: 1.2rem;
+  padding: 0.7em 1.5em;
+  border: 2px solid #fff176;
+  background: linear-gradient(145deg, #fff176, #ffd54f);
+  color: #111;
+  box-shadow: 0 4px #b28c00;
+  display: inline-block;
+  margin-top: 8px;
 }
-.btn-start:hover {
-  box-shadow: 0 0 18px rgba(255,240,180,0.75);
+
+#startBtn:hover {
+  background: linear-gradient(145deg, #fff59d, #ffe082);
 }
-.btn-start::after {
-  content: "";
+
+#startBtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px #b28c00;
+}
+
+/* ripple effect */
+#startBtn::after {
+  content: '';
   position: absolute;
-  width: 100%; height: 100%;
-  top: 0; left: 0;
-  background: radial-gradient(circle, rgba(255,223,0,0.3) 10%, transparent 70%);
+  width: 300%;
+  height: 300%;
+  background: rgba(255, 241, 118, 0.3);
+  top: -100%;
+  left: -100%;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  pointer-events: none;
+}
+
+#startBtn:active::after {
+  transform: scale(1);
   opacity: 0;
-  transition: 0.3s;
-}
-.btn-start:hover::after { opacity: 1; }
-.btn-start.smaller { width: 130px; height: 46px; font-size: 18px;font-family: "Quicksand", sans-serif;}
-
-/* input */
-#playerNameInput {
-  margin-top: 14px;
-  padding: 6px 10px;
-  font-size: 16px;
-  border: 2px solid #ffd76b;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.05);
-  color: #fff;
-  text-align: center;
-  outline: none;
-  width: 200px;
-}
-#playerNameInput::placeholder { color: rgba(255,255,255,0.6); font-family: "Quicksand", sans-serif; }
-
-/* score */
-#scoreDisplay {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 6px 12px;
-  font-size: 22px;
-  font-weight: 600;
-  color: #fff7aa;
-  background: rgba(0,0,0,0.4);
-  border: 2px solid #ffd76b;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 0 12px rgba(255,232,150,0.6);
+  transition: 0s;
 }
 
-/* leaderboard */
-#leaderboardModal {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  backdrop-filter: blur(4px);
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  padding: 20px;
-  color: white;
-  overflow: auto;
-  z-index: 50;
+/* RESTART BUTTON - more prominent */
+#restartBtn {
+  font-size: 1.1rem;
+  padding: 0.6em 1.5em;
+  background: linear-gradient(145deg, #ffeb8a, #ffd700);
+  color: #111;
+  border: 2px solid #ffd700;
+  box-shadow: 0 4px #b28c00;
 }
-#leaderboardModal.hidden { display: none; }
 
+/* LEADERBOARD BUTTON - slightly bigger to fit text, less prominent */
+#viewLeaderboardBtn {
+  font-size: 1rem;
+  padding: 0.6em 1.8em;
+  background: linear-gradient(145deg, #222, #111);
+  color: #ffeb8a;
+  border: 2px solid #ffeb8a;
+  box-shadow: none;
+}
+
+/* LEADERBOARD */
 .lb-row {
   display: flex;
   justify-content: space-between;
   padding: 6px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  font-family: "Quicksand", sans-serif;
-  color: #fff;
+  border-bottom: 1px solid #333;
+  font-size: 0.9rem;
 }
-.lb-num { width: 30px; text-align: left; }
-.lb-name { flex-grow: 1; margin-left: 6px; }
-.lb-score { width: 40px; text-align: right; }
-.lb-row.current { background: rgba(255,235,138,0.2); border-radius: 4px; }
+
+.lb-row.current {
+  background: rgba(255,235,138,0.2);
+}
+
+.lb-num, .lb-name, .lb-score {
+  flex: 1;
+  text-align: center;
+}
+
+/* SCORE DISPLAY */
+.score-display {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  color: #ffeb8a;
+  z-index: 5;
+}
