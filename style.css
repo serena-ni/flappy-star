@@ -1,239 +1,125 @@
-/* GLOBAL */
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+/* FONTS */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-body {
+/* reset */
+* {
   margin: 0;
   padding: 0;
-  background: black;
-  font-family: "Quicksand", sans-serif;
+  box-sizing: border-box;
+}
+
+/* BASE */
+body {
+  font-family: "Poppins", sans-serif;
+  background: #0a0a0a;
+  color: white;
   overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
 }
 
-/* game container */
-#game-container {
-  position: relative;
-  width: 420px;
-  height: 640px;
-}
-
-/* game canvas */
-#gameCanvas {
+/* start and end screens COVER the game */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  border-radius: 14px;
-  display: block;
-  background: #000;
-  box-shadow: 0 0 16px rgba(255,255,255,0.18);
-  z-index: 1;
-}
-
-/* STARFIELD BACKGROUND — placed BEHIND canvas */
-#starfield {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: 14px;
-}
-
-/* OVERLAYS (start, end, leaderboard) */
-.overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(8px);
-
+  background: #0a0a0a;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  text-align: center;
-
-  color: white;
+  justify-content: center;
+  transition: opacity 0.4s ease;
+  z-index: 50;        /* IMPORTANT: ensure it covers the canvas */
 }
 
+/* hide screen */
 .hidden {
-  display: none !important;
-}
-
-.title {
-  font-size: 48px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-shadow: 0 0 14px rgba(255,255,200,0.6);
-}
-
-.title.small {
-  font-size: 34px;
-}
-
-/* HINT TEXT */
-.hint {
-  margin-top: 12px;
-  font-size: 16px;
-  opacity: 0.85;
-}
-
-/* NAME INPUT FIELD */
-#player-name-input {
-  margin-top: 18px;
-  width: 200px;
-  padding: 10px 14px;
-
-  background: rgba(255,255,255,0.12);
-  border: 2px solid gold;
-  border-radius: 14px;
-
-  color: gold;
-  font-size: 18px;
-  text-align: center;
-
-  outline: none;
-  transition: 0.25s ease;
-  z-index: 11;
-}
-
-#player-name-input::placeholder {
-  color: rgba(255,215,0,0.55);
-}
-
-#player-name-input:focus {
-  background: rgba(255,255,255,0.18);
-  box-shadow: 0 0 10px gold;
-}
-
-/* GOLD BUTTONS (Uiverse-inspired) */
-.btn {
-  position: relative;
-  overflow: hidden;
-
-  width: 160px;
-  padding: 12px 0;
-
-  background: linear-gradient(135deg, #fff7aa, #ffd76b);
-  border: none;
-  border-radius: 24px;
-
-  color: #5a4900;
-  font-weight: 600;
-  font-size: 20px;
-
-  cursor: pointer;
-  transition: 0.25s ease;
-  margin-top: 20px;
-
-  box-shadow: 0 0 14px rgba(255,224,120,0.6);
-  z-index: 11;
-}
-
-/* hover shine */
-.btn:hover {
-  box-shadow: 0 0 22px rgba(255,240,180,0.9);
-  transform: translateY(-2px);
-}
-
-/* ripple effect */
-.btn::after {
-  content: "";
-  position: absolute;
-  background: rgba(255, 255, 255, 0.8);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
   opacity: 0;
   pointer-events: none;
-  transform: scale(0);
-  transition: transform 0.5s ease, opacity 0.8s ease;
 }
 
-.btn:active::after {
-  opacity: 1;
-  transform: scale(18);
-}
-
-/* SCORE BOX */
-#score-display {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-
-  padding: 6px 14px;
-  background: rgba(0,0,0,0.35);
-  border: 2px solid gold;
-  border-radius: 14px;
-
-  color: gold;
-  font-size: 28px;
-  font-weight: 600;
-
-  text-shadow: 0 0 6px rgba(255,255,150,0.6);
-  z-index: 5;
-}
-
-/* LEADERBOARD MODAL */
-#leaderboard-modal {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-
-  background: rgba(0,0,0,0.80);
-  backdrop-filter: blur(10px);
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-
-  padding: 20px;
-}
-
-#leaderboard-box {
-  width: 300px;
-  max-width: 90%;
-  padding: 18px 22px;
-  border-radius: 16px;
-
-  background: rgba(255,255,255,0.07);
-  border: 2px solid gold;
-  box-shadow: 0 0 14px rgba(255,215,100,0.5);
-}
-
-#leaderboard-title {
+/* titles */
+#start-screen h1,
+#end-screen h1 {
+  font-family: "Press Start 2P", monospace;
   font-size: 32px;
-  margin-bottom: 12px;
-  text-shadow: 0 0 10px rgba(255,255,200,0.5);
+  margin-bottom: 25px;
+  text-align: center;
+  color: #f4f4f4;
 }
 
-#leaderboard-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-#leaderboard-list li {
-  padding: 6px 10px;
-  display: flex;
-  justify-content: space-between;
-
+/* GOLD BUTTON */
+.button {
+  position: relative;
+  padding: 14px 40px;
+  border-radius: 10px;
   font-size: 18px;
-  color: gold;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(145deg, #6e5600, #b99500);
+  box-shadow:
+    inset 0 2px 4px rgba(255,255,255,0.4),
+    inset 0 -3px 4px rgba(0,0,0,0.5);
+  transition: transform 0.15s ease;
 }
 
-#leaderboard-list li.current {
-  background: rgba(255,255,255,0.12);
-  border-radius: 8px;
+/* hover */
+.button:hover {
+  transform: translateY(-3px);
 }
 
-/* END SCREEN BUTTON CONTAINER */
-.end-buttons {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
+/* click */
+.button:active {
+  transform: scale(0.96);
+}
+
+/* ripple */
+.button::after {
+  content: "";
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 205, 60, 0.7);
+  border-radius: 50%;
+  transform: scale(1);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ripple animation */
+.button:active::after {
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(50);
+  }
+}
+
+/* canvas centered + styled */
+canvas {
+  display: block;
+  margin: 0 auto;
+  background: #111;
+  border: 3px solid #b99500;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+/* end screen text */
+#end-screen p {
+  margin-top: 12px;
+  font-size: 18px;
+  opacity: 0.85;
+  text-align: center;
 }
