@@ -1,56 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flappy Star</title>
-
-<!-- Celestial font -->
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>flappy star</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet" />
 </head>
+
 <body>
-<div id="game-container">
-  <canvas id="gameCanvas" width="420" height="640"></canvas>
+  <div id="game-container">
 
-  <!-- start Screen -->
-<div id="start-screen" class="overlay">
-  <h1 class="title">flappy star</h1>
+    <!-- ===== START SCREEN ===== -->
+    <div id="start-screen" class="overlay">
+      <h1 class="title">flappy star</h1>
 
-<input type="text" id="player-name" placeholder="enter your name" maxlength="12" class="btn-input" />
-
-  <button class="btn-start"><span>start</span></button>
-  <p class="hint">tap or press space to begin</p>
-</div>
-
-  <!-- game over screen -->
-<div id="game-over-screen" class="overlay hidden">
-    <h2 class="title small">game over</h2>
-    <div id="final-score"></div>
-
-    <button id="restart-btn" class="btn-start smaller">
-     <span>restart</span>
+      <input type="text" id="player-name" class="btn-input"
+             placeholder="enter your name" maxlength="12"/>
+             
+    <button id="start-btn" class="btn-start">
+        <span>start</span>
     </button>
+    </div>
 
-    <button id="view-leaderboard-btn" class="btn-start smaller" style="margin-top:16px;">
-     <span>leaderboard</span>
-    </button>
-</div>
+    <!-- game canvas -->
+    <canvas id="gameCanvas"></canvas>
 
-<!-- leaderboard modal -->
-<div id="leaderboard-modal" class="overlay hidden">
-  <div id="leaderboard-box" style="background: rgba(0,0,0,0.85); padding: 24px; border-radius: 16px; max-width: 300px; text-align: center;">
-    <h3 style="margin-bottom:12px;">leaderboard</h3>
-    <ul id="leaderboard-list" style="list-style:none; padding:0; margin:0;"></ul>
-    <button id="close-leaderboard-btn" class="btn-start smaller" style="margin-top:16px;"><span>close</span></button>
-  </div>
-</div>
+    <!-- game over screen -->
+    <div id="gameOverScreen" class="hidden">
+        <h1>game over</h1>
+        <p id="finalScore"></p>
+        <button id="restartBtn">play again</button>
+        <button id="viewLeaderboardBtn">view leaderboard</button>
+    </div>
 
-    <button id="restart-btn" class="btn-start smaller"><span>restart</span></button>
-  </div>
-</div>
+    <!-- leaderboard modal -->
+    <div id="leaderboardModal" class="hidden">
+        <div id="leaderboardBox">
+            <h2>leaderboard</h2>
+            <div id="leaderboardList"></div>
+            <button id="closeLeaderboardBtn">close</button>
+        </div>
+    </div>
 
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
