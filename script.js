@@ -58,13 +58,11 @@ startBtn.onclick = () => {
   if(gameStarted) return;
   gameStarted = true;
   starFalling = false;
-  _frameCount = 0;
 
   startOverlay.classList.add("hidden");
   endOverlay.classList.add("hidden");
   leaderboardModal.classList.add("hidden");
 
-  // show canvas and score
   canvas.style.display = "block";
   scoreDisplay.style.display = "block";
 
@@ -106,12 +104,10 @@ function gameLoop(){
 
 // draw night sky with shimmer + parallax stars
 function drawBackground(){
-  // faint shimmer: oscillate between dark blue and black
   const shimmer = Math.sin(Date.now()/1000)*10;
   ctx.fillStyle = `rgb(${10+shimmer}, ${10+shimmer}, ${30+shimmer})`;
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // parallax stars
   starLayers.forEach(layer => {
     layer.forEach(s=>{
       s.x -= s.speed;
@@ -123,7 +119,6 @@ function drawBackground(){
     });
   });
 
-  // shooting stars
   shootingStars.forEach((s,i)=>{
     s.x += s.vx;
     s.y += s.vy;
@@ -137,7 +132,6 @@ function drawBackground(){
     if(s.life<=0) shootingStars.splice(i,1);
   });
 
-  // occasionally add shooting star
   if(Math.random()<0.002){
     shootingStars.push({
       x: canvas.width + 20,
@@ -153,7 +147,6 @@ function drawBackground(){
 // update player star
 function updateStar(){
   if(!starFalling){
-    // hover
     star.bobOffset += 0.5 * star.bobDir;
     if(star.bobOffset>4||star.bobOffset<-4) star.bobDir*=-1;
     star.y = canvas.height/2 + star.bobOffset;
@@ -164,10 +157,8 @@ function updateStar(){
   if(star.vy > star.maxVy) star.vy = star.maxVy;
   star.y += star.vy;
 
-  // trail
   particles.push({x:star.x, y:star.y, vx:0, vy:0, r:Math.max(1, star.vy*0.5), life:10});
 
-  // bottom collision
   if(star.y + star.radius > canvas.height){
     if(invulnerableFrames>0){
       star.y = canvas.height-star.radius-1;
@@ -199,8 +190,6 @@ function updatePipes(){
 
   pipes.forEach((p,i)=>{
     p.x -= 2;
-
-    // subtle wobble
     p.wobble = Math.sin(Date.now()/200 + i) * 2;
 
     let x = Math.round(p.x);
@@ -226,7 +215,6 @@ function updatePipes(){
     ctx.fillStyle = "rgba(255,255,255,0.1)";
     ctx.fillRect(x+5,canvas.height-bottomHeight,w-10,bottomHeight);
 
-    // collision
     if(starFalling && invulnerableFrames<=0 && star.x+star.radius>p.x && star.x-star.radius<p.x+w){
       if(star.y-star.radius<p.top || star.y+star.radius>canvas.height-p.bottom){
         createExplosion(star.x,star.y);
@@ -235,10 +223,7 @@ function updatePipes(){
       }
     }
 
-    // remove offscreen
     if(p.x+w<0) pipes.splice(i,1);
-
-    // scoring
     if(p.x+w<star.x && !p.passed){ score++; p.passed=true; }
   });
 }
@@ -285,23 +270,19 @@ function endGame() {
 
 // restart & leaderboard
 restartBtn.onclick = () => {
-  // hide overlays
   endOverlay.classList.add("hidden");
   leaderboardModal.classList.add("hidden");
   startOverlay.classList.remove("hidden");
   playerNameInput.focus();
 
-  // reset game state
   resetGame();
   gameStarted = false;
   starFalling = false;
 
-  // hide the canvas temporarily and clear it to black
   canvas.style.display = "none";
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // hide score
   scoreDisplay.style.display = "none";
 };
 
@@ -324,30 +305,57 @@ function saveScore(){
   localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board.slice(0,5)));
 }
 
-function populateLeaderboard(){
-  const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
-  leaderboardList.innerHTML="";
-  let addedCurrent=false;
+function populateLeaderboard() {
+  const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard") || "[]");
+  leaderboardList.innerHTML = "";
+  let addedCurrent = false;
 
-  board.forEach((entry,i)=>{
-    const row=document.createElement("div"); row.className="lb-row";
-    const num=document.createElement("div"); num.className="lb-num"; num.textContent=i+1;
-    const name=document.createElement("div"); name.className="lb-name"; name.textContent=entry.name;
-    const sc=document.createElement("div"); sc.className="lb-score"; sc.textContent=entry.score;
-    if(entry.name===playerName && entry.score===score && !addedCurrent){
+  board.forEach((entry, i) => {
+    const row = document.createElement("div");
+    row.className = "lb-row";
+
+    if(entry.name === playerName && entry.score === score && !addedCurrent){
       row.classList.add("current");
-      addedCurrent=true;
+      addedCurrent = true;
     }
-    row.appendChild(num); row.appendChild(name); row.appendChild(sc);
+
+    const num = document.createElement("div");
+    num.className = "lb-num";
+    num.textContent = i + 1;
+
+    const name = document.createElement("div");
+    name.className = "lb-name";
+    name.textContent = entry.name;
+
+    const sc = document.createElement("div");
+    sc.className = "lb-score";
+    sc.textContent = entry.score;
+
+    row.appendChild(num);
+    row.appendChild(name);
+    row.appendChild(sc);
     leaderboardList.appendChild(row);
   });
 
-  if(!addedCurrent && score>0){
-    const row=document.createElement("div"); row.className="lb-row current";
-    const num=document.createElement("div"); num.className="lb-num"; num.textContent="—";
-    const name=document.createElement("div"); name.className="lb-name"; name.textContent=playerName;
-    const sc=document.createElement("div"); sc.className="lb-score"; sc.textContent=score;
-    row.appendChild(num); row.appendChild(name); row.appendChild(sc);
+  if(!addedCurrent && score > 0){
+    const row = document.createElement("div");
+    row.className = "lb-row current";
+
+    const num = document.createElement("div");
+    num.className = "lb-num";
+    num.textContent = "—";
+
+    const name = document.createElement("div");
+    name.className = "lb-name";
+    name.textContent = playerName;
+
+    const sc = document.createElement("div");
+    sc.className = "lb-score";
+    sc.textContent = score;
+
+    row.appendChild(num);
+    row.appendChild(name);
+    row.appendChild(sc);
     leaderboardList.appendChild(row);
   }
 }
