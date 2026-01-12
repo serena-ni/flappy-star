@@ -1,46 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flappy Star</title>
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flappy Star</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+  <div id="viewport">
+    <div id="game-wrapper">
 
-<!-- start screen overlay -->
-<div id="startOverlay" class="overlay">
-  <h1 class="title">flappy star</h1>
-  <input type="text" id="playerNameInput" placeholder="enter your name">
-  <button id="startBtn" class="btn-start"><span>start</span></button>
-  <p class="hint">press start to begin</p>
-</div>
+      <div id="startOverlay" class="overlay">
+        <h1 class="title">flappy star</h1>
+        <input id="playerNameInput" placeholder="enter your name">
+        <button id="startBtn">start</button>
+        <p class="hint">tap / space to jump</p>
+      </div>
 
-<!-- game container -->
-<div id="game-container">
-  <canvas id="gameCanvas"></canvas>
-  <div id="scoreDisplay" class="score-display">0</div>
-</div>
+      <canvas id="gameCanvas"></canvas>
+      <div id="scoreDisplay">0</div>
 
-<!-- end screen overlay -->
-<div id="endOverlay" class="overlay hidden">
-  <h2 class="title small">game over</h2>
-  <div id="final-score">score: 0</div>
-  <button id="restartBtn">restart</button>
-  <button id="viewLeaderboardBtn">leaderboard</button>
-</div>
+      <div id="endOverlay" class="overlay hidden">
+        <h2 class="title small">game over</h2>
+        <div id="final-score">score: 0</div>
+        <button id="restartBtn">restart</button>
+        <button id="viewLeaderboardBtn">leaderboard</button>
+      </div>
 
-<!-- leaderboard overlay -->
-<div id="leaderboardModal" class="hidden">
-  <div id="leaderboardContent">
-    <h2>leaderboard</h2>
-    <div id="leaderboardList"></div>
-    <button id="closeLeaderboardBtn" class="btn">close</button>
+      <div id="leaderboardModal" class="hidden">
+        <div id="leaderboardContent">
+          <h2>leaderboard</h2>
+          <div id="leaderboardList"></div>
+          <button id="closeLeaderboardBtn">close</button>
+        </div>
+      </div>
+
+    </div>
   </div>
-</div>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-// elements
+// ELEMENTS
 const startOverlay = document.getElementById("startOverlay");
 const startBtn = document.getElementById("startBtn");
 const playerNameInput = document.getElementById("playerNameInput");
@@ -6,59 +6,40 @@ const scoreDisplay = document.getElementById("scoreDisplay");
 
 const endOverlay = document.getElementById("endOverlay");
 const restartBtn = document.getElementById("restartBtn");
+const finalScoreEl = document.getElementById("final-score");
 
 const viewLeaderboardBtn = document.getElementById("viewLeaderboardBtn");
 const closeLeaderboardBtn = document.getElementById("closeLeaderboardBtn");
 const leaderboardModal = document.getElementById("leaderboardModal");
-const finalScoreEl = document.getElementById("final-score");
 const leaderboardList = document.getElementById("leaderboardList");
 
-// canvas
+// CANVAS
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 canvas.width = 420;
 canvas.height = 640;
 
-// game state
-let gameStarted = false;
-let starFalling = false;
-let playerName = "guest";
+// GAME STATE
+let running = false;
 let score = 0;
+let lastTime = 0;
 let pipes = [];
 let particles = [];
-let invulnerableFrames = 0;
-let animationId;
+let playerName = "guest";
 
-// player star
-let star = { x:100, y:canvas.height/2, radius:12, vy:0, gravity:0.12, maxVy:2.5, bobOffset:0, bobDir:1 };
+// STAR (FIXED PHYSICS)
+const star = {
+  x: 110,
+  y: canvas.height / 2,
+  r: 12,
+  vy: 0,
+  gravity: 1400,   // stronger gravity
+  jump: -420,      // MUCH stronger jump
+  squash: 1
+};
 
-// background stars layers (parallax)
-const starLayers = [
-  Array.from({length: 30}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*1.5+0.5, speed:0.05})),
-  Array.from({length: 20}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2+1, speed:0.1})),
-  Array.from({length: 10}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*3+1, speed:0.2}))
-];
-
-let shootingStars = [];
-
-// reset game
-function resetGame(){
-  star.y = canvas.height/2;
-  star.vy = 0;
-  star.bobOffset = 0;
-  star.bobDir = 1;
-  score = 0;
-  pipes = [];
-  particles = [];
-  shootingStars = [];
-}
-
-// start game
+// START GAME (FIX: force first frame)
 startBtn.onclick = () => {
-  if(gameStarted) return;
-  gameStarted = true;
-  starFalling = false;
-
   startOverlay.classList.add("hidden");
   endOverlay.classList.add("hidden");
   leaderboardModal.classList.add("hidden");
@@ -66,230 +47,182 @@ startBtn.onclick = () => {
   canvas.style.display = "block";
   scoreDisplay.style.display = "block";
 
-  const nameVal = playerNameInput.value.trim();
-  playerName = nameVal !== "" ? nameVal : "guest";
+  playerName = playerNameInput.value.trim() || "guest";
 
   resetGame();
-  invulnerableFrames = 30;
-  requestAnimationFrame(gameLoop);
+  running = true;
+
+  lastTime = performance.now();
+  requestAnimationFrame(loop);
 };
 
-// input handler
-function handleJump(){
-  if(!gameStarted) return;
-  if(!starFalling){
-    starFalling = true;
-    star.vy = 0;
-  } else if(invulnerableFrames <= 0){
-    star.vy = -2.5;
-  }
+// INPUT (FIXED: always responsive)
+function jump() {
+  if (!running) return;
+  star.vy = star.jump;
+  star.squash = 1.35;
 }
-document.addEventListener("keydown", e => { if(e.code==="Space") handleJump(); });
-document.addEventListener("pointerdown", handleJump);
 
-// game loop
-function gameLoop(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  drawBackground();
-  updateStar();
-  updatePipes();
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") {
+    e.preventDefault();
+    jump();
+  }
+});
+
+document.addEventListener("pointerdown", jump);
+
+// RESET
+function resetGame() {
+  score = 0;
+  pipes = [];
+  particles = [];
+
+  star.y = canvas.height / 2;
+  star.vy = 0;
+  star.squash = 1;
+
+  scoreDisplay.textContent = "0";
+}
+
+// GAME LOOP (FIXED dt clamp)
+function loop(time) {
+  if (!running) return;
+
+  const dt = Math.min((time - lastTime) / 1000, 0.033);
+  lastTime = time;
+
+  update(dt);
+  draw();
+
+  requestAnimationFrame(loop);
+}
+
+// UPDATE
+function update(dt) {
+  // STAR PHYSICS
+  star.vy += star.gravity * dt;
+  star.y += star.vy * dt;
+  star.squash += (1 - star.squash) * 10 * dt;
+
+  // TRAIL
+  particles.push({
+    x: star.x - 8,
+    y: star.y,
+    r: Math.random() * 2 + 1.5,
+    life: 20
+  });
+
+  // PIPES
+  if (pipes.length === 0 || pipes[pipes.length - 1].x < 200) {
+    spawnPipe();
+  }
+
+  pipes.forEach(p => {
+    p.x -= 160 * dt;
+
+    if (!p.passed && p.x + 40 < star.x) {
+      score++;
+      p.passed = true;
+      scoreDisplay.textContent = score;
+    }
+
+    if (
+      star.x + star.r > p.x &&
+      star.x - star.r < p.x + 40 &&
+      (star.y - star.r < p.top || star.y + star.r > p.top + p.gap)
+    ) endGame();
+  });
+
+  pipes = pipes.filter(p => p.x > -60);
+
+  if (star.y + star.r > canvas.height || star.y - star.r < 0) {
+    endGame();
+  }
+
   updateParticles();
+}
+
+// DRAW
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  drawPipes();
+  drawParticles();
   drawStar();
-  scoreDisplay.textContent = score;
-
-  if(invulnerableFrames>0) invulnerableFrames--;
-
-  if(gameStarted) animationId = requestAnimationFrame(gameLoop);
 }
 
-// draw night sky with shimmer + parallax stars
-function drawBackground(){
-  const shimmer = Math.sin(Date.now()/1000)*10;
-  ctx.fillStyle = `rgb(${10+shimmer}, ${10+shimmer}, ${30+shimmer})`;
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+// STAR
+function drawStar() {
+  ctx.save();
+  ctx.translate(star.x, star.y);
+  ctx.scale(1 / star.squash, star.squash);
 
-  starLayers.forEach(layer => {
-    layer.forEach(s=>{
-      s.x -= s.speed;
-      if(s.x<0) s.x = canvas.width;
-      ctx.beginPath();
-      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle="#fff";
-      ctx.fill();
-    });
-  });
+  ctx.fillStyle = "#ffeb8a";
+  ctx.shadowBlur = 18;
+  ctx.shadowColor = "#ffeb8a";
 
-  shootingStars.forEach((s,i)=>{
-    s.x += s.vx;
-    s.y += s.vy;
-    s.life--;
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = s.r;
-    ctx.beginPath();
-    ctx.moveTo(s.x - s.vx*3, s.y - s.vy*3);
-    ctx.lineTo(s.x, s.y);
-    ctx.stroke();
-    if(s.life<=0) shootingStars.splice(i,1);
-  });
-
-  if(Math.random()<0.002){
-    shootingStars.push({
-      x: canvas.width + 20,
-      y: Math.random()*canvas.height/2,
-      vx: -8 - Math.random()*2,
-      vy: 0,
-      r: 2 + Math.random()*1.5,
-      life: 50 + Math.random()*20
-    });
-  }
-}
-
-// update player star
-function updateStar(){
-  if(!starFalling){
-    star.bobOffset += 0.5 * star.bobDir;
-    if(star.bobOffset>4||star.bobOffset<-4) star.bobDir*=-1;
-    star.y = canvas.height/2 + star.bobOffset;
-    return;
-  }
-
-  star.vy += star.gravity;
-  if(star.vy > star.maxVy) star.vy = star.maxVy;
-  star.y += star.vy;
-
-  particles.push({x:star.x, y:star.y, vx:0, vy:0, r:Math.max(1, star.vy*0.5), life:10});
-
-  if(star.y + star.radius > canvas.height){
-    if(invulnerableFrames>0){
-      star.y = canvas.height-star.radius-1;
-      star.vy = 0;
-    } else {
-      createExplosion(star.x, star.y);
-      shakeScreen();
-      endGame();
-    }
-  }
-}
-
-function drawStar(){
   ctx.beginPath();
-  ctx.arc(star.x, star.y, star.radius,0,Math.PI*2);
-  ctx.fillStyle="#ffeb8a";
+  ctx.arc(0, 0, star.r, 0, Math.PI * 2);
   ctx.fill();
+
+  ctx.restore();
 }
 
-// pipes
-let pipeGap = 140;
-let pipeSpacing = 280;
+// PIPES
+function spawnPipe() {
+  const gap = 160;
+  const top = Math.random() * 260 + 60;
+  pipes.push({ x: canvas.width, top, gap, passed: false });
+}
 
-function updatePipes(){
-  if(pipes.length === 0 || pipes[pipes.length-1].x < canvas.width - pipeSpacing){
-    let topH = Math.random()*(canvas.height/2)+60;
-    pipes.push({x:canvas.width, top:topH, bottom:canvas.height-topH-pipeGap, passed:false, wobble: Math.random()*2});
-  }
-
-  pipes.forEach((p,i)=>{
-    p.x -= 2;
-    p.wobble = Math.sin(Date.now()/200 + i) * 2;
-
-    let x = Math.round(p.x);
-    let w = 40;
-    let topHeight = p.top + p.wobble;
-    let bottomHeight = p.bottom + p.wobble;
-
-    // top pipe
-    let topGrad = ctx.createLinearGradient(x,0,x+w,topHeight);
-    topGrad.addColorStop(0,"#33aaff");
-    topGrad.addColorStop(1,"#0077cc");
-    ctx.fillStyle = topGrad;
-    ctx.fillRect(x,0,w,topHeight);
-    ctx.fillStyle = "rgba(255,255,255,0.1)";
-    ctx.fillRect(x+5,0,w-10,topHeight);
-
-    // bottom pipe
-    let bottomGrad = ctx.createLinearGradient(x,canvas.height-bottomHeight,x+w,canvas.height);
-    bottomGrad.addColorStop(0,"#0077cc");
-    bottomGrad.addColorStop(1,"#33aaff");
-    ctx.fillStyle = bottomGrad;
-    ctx.fillRect(x,canvas.height-bottomHeight,w,bottomHeight);
-    ctx.fillStyle = "rgba(255,255,255,0.1)";
-    ctx.fillRect(x+5,canvas.height-bottomHeight,w-10,bottomHeight);
-
-    if(starFalling && invulnerableFrames<=0 && star.x+star.radius>p.x && star.x-star.radius<p.x+w){
-      if(star.y-star.radius<p.top || star.y+star.radius>canvas.height-p.bottom){
-        createExplosion(star.x,star.y);
-        shakeScreen();
-        endGame();
-      }
-    }
-
-    if(p.x+w<0) pipes.splice(i,1);
-    if(p.x+w<star.x && !p.passed){ score++; p.passed=true; }
+function drawPipes() {
+  ctx.fillStyle = "#3fa9f5";
+  pipes.forEach(p => {
+    ctx.fillRect(p.x, 0, 40, p.top);
+    ctx.fillRect(p.x, p.top + p.gap, 40, canvas.height);
   });
 }
 
-// particles
-function createExplosion(x,y){
-  for(let i=0;i<15;i++){
-    particles.push({x:x,y:y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,r:Math.random()*3+1,life:30});
+// PARTICLES
+function updateParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].life--;
+    if (particles[i].life <= 0) particles.splice(i, 1);
   }
 }
 
-function updateParticles(){
-  for(let i=particles.length-1;i>=0;i--){
-    let p = particles[i];
-    p.x += p.vx; p.y += p.vy; p.life--;
+function drawParticles() {
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life / 20;
     ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fillStyle="#ffeb8a";
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffeb8a";
     ctx.fill();
-    if(p.life<=0) particles.splice(i,1);
-  }
+  });
+  ctx.globalAlpha = 1;
 }
 
-// screen shake
-function shakeScreen(){
-  canvas.style.transform=`translate(${Math.random()*6-3}px,${Math.random()*6-3}px)`;
-  setTimeout(()=>{canvas.style.transform="";},50);
-}
-
-// end game
+// END GAME
 function endGame() {
-  gameStarted = false;
-  starFalling = false;
-
-  cancelAnimationFrame(animationId);
-
-  setTimeout(() => {
-    endOverlay.classList.remove("hidden");
-    finalScoreEl.textContent = `score: ${score}`;
-    scoreDisplay.style.display = "none";
-    saveScore();
-  }, 0);
+  running = false;
+  endOverlay.classList.remove("hidden");
+  scoreDisplay.style.display = "none";
+  finalScoreEl.textContent = `score: ${score}`;
+  saveScore();
 }
 
-// restart & leaderboard
+// RESTART
 restartBtn.onclick = () => {
   endOverlay.classList.add("hidden");
-  leaderboardModal.classList.add("hidden");
   startOverlay.classList.remove("hidden");
-  playerNameInput.focus();
-
-  resetGame();
-  gameStarted = false;
-  starFalling = false;
-
   canvas.style.display = "none";
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  scoreDisplay.style.display = "none";
 };
 
+// LEADERBOARD
 viewLeaderboardBtn.onclick = () => {
   populateLeaderboard();
   leaderboardModal.classList.remove("hidden");
-  endOverlay.classList.add("hidden");
 };
 
 closeLeaderboardBtn.onclick = () => {
@@ -297,76 +230,20 @@ closeLeaderboardBtn.onclick = () => {
   endOverlay.classList.remove("hidden");
 };
 
-// leaderboard
-function saveScore(){
-  const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard")||"[]");
-  board.push({name:playerName, score});
-  board.sort((a,b)=>b.score - a.score);
-  localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board.slice(0,5)));
+function saveScore() {
+  const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard") || "[]");
+  board.push({ name: playerName, score });
+  board.sort((a, b) => b.score - a.score);
+  localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board.slice(0, 5)));
 }
 
 function populateLeaderboard() {
-  const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard") || "[]");
   leaderboardList.innerHTML = "";
-  let addedCurrent = false;
-
-  board.forEach((entry, i) => {
+  const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard") || "[]");
+  board.forEach((e, i) => {
     const row = document.createElement("div");
     row.className = "lb-row";
-
-    if(entry.name === playerName && entry.score === score && !addedCurrent){
-      row.classList.add("current");
-      addedCurrent = true;
-    }
-
-    const num = document.createElement("div");
-    num.className = "lb-num";
-    num.textContent = i + 1;
-
-    const name = document.createElement("div");
-    name.className = "lb-name";
-    name.textContent = entry.name;
-
-    const sc = document.createElement("div");
-    sc.className = "lb-score";
-    sc.textContent = entry.score;
-
-    row.appendChild(num);
-    row.appendChild(name);
-    row.appendChild(sc);
+    row.innerHTML = `<div>${i + 1}</div><div>${e.name}</div><div>${e.score}</div>`;
     leaderboardList.appendChild(row);
   });
-
-  if(!addedCurrent && score > 0){
-    const row = document.createElement("div");
-    row.className = "lb-row current";
-
-    const num = document.createElement("div");
-    num.className = "lb-num";
-    num.textContent = "—";
-
-    const name = document.createElement("div");
-    name.className = "lb-name";
-    name.textContent = playerName;
-
-    const sc = document.createElement("div");
-    sc.className = "lb-score";
-    sc.textContent = score;
-
-    row.appendChild(num);
-    row.appendChild(name);
-    row.appendChild(sc);
-    leaderboardList.appendChild(row);
-  }
 }
-
-// page load
-document.addEventListener("DOMContentLoaded", ()=>{
-  gameStarted=false;
-  starFalling=false;
-  startOverlay.classList.remove("hidden");
-  endOverlay.classList.add("hidden");
-  leaderboardModal.classList.add("hidden");
-  scoreDisplay.style.display="none";
-  resetGame();
-});

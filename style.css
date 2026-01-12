@@ -1,283 +1,149 @@
-/* GLOBAL */
-html, body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background: #000;
-  font-family: "Quicksand", sans-serif;
-  user-select: none;
-  color: #ffeb8a; /* default text color */
+:root {
+  --gold: #ffeb8a;
+  --gold-soft: #ffeaa4;
 }
 
-/* center game container */
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-/* prevent accidental text selection */
+/* RESET */
 * {
   box-sizing: border-box;
   font-family: "Quicksand", sans-serif;
 }
 
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(circle at top, #12152a, #05060f);
+}
+
+/* CENTERING SYSTEM */
+#viewport {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#game-wrapper {
+  position: relative;
+  aspect-ratio: 420 / 640;
+  height: 100vh;
+  max-height: 100vh;
+  width: auto;
+  max-width: 100vw;
+}
+
 /* CANVAS */
 #gameCanvas {
+  width: 100%;
+  height: 100%;
   display: block;
-  border: 2px solid #444;
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: 0 0 40px rgba(255, 235, 138, 0.15);
+  pointer-events: none;
 }
 
 /* OVERLAYS */
 .overlay {
   position: absolute;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(5,6,15,0.85), rgba(5,6,15,0.65));
+  backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 18px;
-  color: #ffeb8a;
-  font-family: "Quicksand", sans-serif;
+  gap: 16px;
+  color: var(--gold);
+  z-index: 10;
 }
 
 .hidden {
   display: none !important;
 }
 
-/* START SCREEN */
-#playerNameInput {
-  padding: 10px 14px;
-  border: 2px solid gold;
-  border-radius: 10px;
-  font-size: 16px;
-  background: #111;
-  color: #ffeb8a;
-  width: 180px;
-  text-align: center;
-  margin-bottom: 8px;
+/* TEXT */
+.title {
+  font-size: 42px;
+  letter-spacing: 1px;
 }
-
-#playerNameInput::placeholder {
-  color: #d8c25a;
+.title.small {
+  font-size: 28px;
+}
+.hint {
   opacity: 0.7;
+  font-size: 14px;
 }
 
-/* BUTTON BASE STYLE */
-button {
-  border: 2px solid gold;
+/* INPUT */
+input {
+  padding: 10px 14px;
   border-radius: 12px;
+  border: 1px solid var(--gold);
+  background: rgba(0,0,0,0.4);
+  color: var(--gold);
+  text-align: center;
+}
+
+/* BUTTONS */
+button {
+  padding: 12px 32px;
+  border-radius: 14px;
+  border: 1px solid var(--gold);
+  background: linear-gradient(145deg, #1a1d3a, #0b0d1f);
+  color: var(--gold-soft);
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-  position: relative;
-  overflow: hidden;
-  font-family: "Quicksand", sans-serif;
-}
-
-/* ripple effect */
-button::after {
-  content: '';
-  position: absolute;
-  width: 260%;
-  height: 260%;
-  background: rgba(255, 215, 0, 0.3);
-  top: -80%;
-  left: -80%;
-  border-radius: 50%;
-  transform: scale(0);
-  transition: transform 0.4s ease, opacity 0.4s ease;
-  pointer-events: none;
-}
-
-button:active::after {
-  transform: scale(1);
-  opacity: 0;
-  transition: 0s;
+  transition: transform .15s ease, box-shadow .15s ease;
 }
 
 button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 10px gold;
+  box-shadow: 0 0 18px rgba(255,235,138,0.6);
 }
 
-/* START BUTTON */
-#startBtn {
-  font-size: 18px;
-  padding: 10px 22px;
-  background: linear-gradient(145deg, #333, #1a1a1a);
-  color: #ffeaa4; /* lighter gold */
-  border-color: #ffdf75;
-  font-family: "Quicksand", sans-serif;
-}
-
-#startBtn:hover {
-  box-shadow: 0 0 12px #ffdf75;
-}
-
-/* END OVERLAY */
-#endOverlay {
-  background: rgba(0,0,0,0.7);
-  gap: 14px;
-  font-family: "Quicksand", sans-serif;
-}
-
-/* RESTART BUTTON */
-#restartBtn {
-  font-size: 20px;
-  padding: 12px 36px; /* big and prominent */
-  background: linear-gradient(145deg, #ffeb8a, #ffd700);
-  color: #111;
-  border-color: #ffd700;
-  border-radius: 12px;
-  font-family: "Quicksand", sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 0 15px #ffd700;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-#restartBtn:hover {
-  box-shadow: 0 0 20px #ffe680;
-  transform: translateY(-2px);
-}
-
-/* LEADERBOARD BUTTON (matches restart style, but darker) */
-#viewLeaderboardBtn {
-  font-size: 18px;
-  padding: 12px 36px;  /* bigger width for text */
-  background: linear-gradient(145deg, #222, #111);
-  color: #ffeb8a;
-  border-color: gold;
-  border-radius: 12px;
-  font-family: "Quicksand", sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 0 8px gold;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-#viewLeaderboardBtn:hover {
-  box-shadow: 0 0 14px #ffe680;
-  transform: translateY(-2px);
-}
-
-/* CLOSE BUTTON in leaderboard modal */
-#closeLeaderboardBtn {
-  font-size: 16px;
-  padding: 10px 28px;
-  background: linear-gradient(145deg, #222, #111);
-  color: #ffeb8a;
-  border-color: gold;
-  border-radius: 12px;
-  font-family: "Quicksand", sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 0 6px gold;
-}
-#closeLeaderboardBtn:hover {
-  box-shadow: 0 0 12px #ffe680;
-  transform: translateY(-2px);
-}
-
-/* LEADERBOARD MODAL */
-#leaderboardModal {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;              /* full width */
-  height: 100%;             /* full height */
-  background: rgba(0,0,0,0.85);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  border: none;
-  color: #ffeb8a;
-  font-family: "Quicksand", sans-serif;
-}
-
-/* inner container so text isn’t edge-to-edge */
-#leaderboardContent {
-  width: 80%;               /* take up most of the game width */
-  max-width: 600px;         /* but not overly wide on large screens */
-  background: #111;
-  border: 2px solid gold;
-  border-radius: 14px;
-  padding: 20px;
-}
-
-/* list container */
-#leaderboardList {
-  margin-top: 16px;
-  margin-bottom: 20px; /* added spacing between scores and close button */
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-/* each row takes whole width */
-.lb-row {
-  display: grid;
-  grid-template-columns: 30px 1fr auto;  /* auto = score takes only the width it needs */
-  align-items: center;
-  padding: 6px 4px;
-  border-bottom: 1px solid #333;
-  font-family: "Quicksand", sans-serif;
-  white-space: nowrap; /* prevents score from wrapping */
-}
-
-.lb-name {
-  overflow: hidden;
-  text-overflow: ellipsis; /* optional, handles super long names */
-}
-
-.lb-row:last-child {
-  border-bottom: none;
-}
-
-/* highlight the player row */
-.lb-row.current {
-  background: rgba(255, 215, 0, 0.15);
-  border-left: 4px solid gold;
-  font-weight: 700;
-  color: #fff;
-}
-
-/* columns */
-.lb-num {
-  width: 40px;
-  flex-shrink: 0;
-}
-
-.lb-name {
-  flex: 1;
-  text-align: left;
-  padding-left: 8px;
-}
-
-.lb-score {
-  width: 60px;
-  text-align: right;
-  flex-shrink: 0;
-}
-
-/* SCORE DISPLAY */
+/* SCORE */
 #scoreDisplay {
   position: absolute;
-  top: 20px;
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 22px;
-  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255,235,138,0.9);
   color: #111;
-  background: linear-gradient(145deg, #ffeb8a, #ffd700);
-  border: 2px solid #ffd700;
-  border-radius: 12px;
-  padding: 8px 16px;
-  box-shadow: 0 0 15px #ffd700;
+  font-weight: 700;
   display: none;
-  font-family: "Quicksand", sans-serif;
+}
+
+/* LEADERBOARD */
+#leaderboardModal {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#leaderboardContent {
+  background: rgba(10,12,25,0.8);
+  border: 1px solid var(--gold);
+  border-radius: 16px;
+  padding: 20px;
+  width: 80%;
+}
+
+.lb-row {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  padding: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.lb-row.current {
+  background: rgba(255,235,138,0.15);
+  font-weight: 700;
 }
