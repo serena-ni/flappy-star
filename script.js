@@ -1,3 +1,19 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { getDatabase, ref, push, query, orderByChild, limitToLast, get } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDmDPQHIDzDnh9YhM8mB5ExgSwI6821XTg",
+  authDomain: "flappy-star.firebaseapp.com",
+  databaseURL: "https://flappy-star-default-rtdb.firebaseio.com",
+  projectId: "flappy-star",
+  storageBucket: "flappy-star.firebasestorage.app",
+  messagingSenderId: "190383346741",
+  appId: "1:190383346741:web:b534e6d4eec590d8dfcd7c"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 canvas.width = 420;
@@ -271,25 +287,50 @@ function gameOver() {
 }
 
 function saveScore() {
-  const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard") || "[]");
-  board.push({ name: playerName, score });
-  board.sort((a, b) => b.score - a.score);
-  localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board.slice(0, 10)));
+  const scoresRef = ref(database, 'scores');
+  push(scoresRef, {
+    name: playerName,
+    score: score,
+    timestamp: Date.now()
+  }).catch(err => {
+    console.error("Error saving score:", err);
+    // fallback to local storage
+    const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard") || "[]");
+    board.push({ name: playerName, score });
+    board.sort((a, b) => b.score - a.score);
+    localStorage.setItem("flappyStarLeaderboard", JSON.stringify(board.slice(0, 10)));
+  });
 }
 
 function showLeaderboard() {
-  leaderboardList.innerHTML = "";
-  const board = JSON.parse(localStorage.getItem("flappyStarLeaderboard") || "[]");
+  leaderboardList.innerHTML = '<div style="text-align: center; opacity: 0.6; padding: 20px;">loading...</div>';
   
-  if (board.length === 0) {
-    leaderboardList.innerHTML = '<div style="text-align: center; opacity: 0.6; padding: 20px;">no scores yet</div>';
-    return;
-  }
+  const scoresRef = ref(database, 'scores');
+  const topScoresQuery = query(scoresRef, orderByChild('score'), limitToLast(10));
   
-  board.forEach((entry, i) => {
-    const row = document.createElement("div");
-    row.className = "lb-row";
-    row.innerHTML = `<div>${i + 1}</div><div>${entry.name}</div><div>${entry.score}</div>`;
-    leaderboardList.appendChild(row);
+  get(topScoresQuery).then(snapshot => {
+    leaderboardList.innerHTML = "";
+    
+    if (!snapshot.exists()) {
+      leaderboardList.innerHTML = '<div style="text-align: center; opacity: 0.6; padding: 20px;">no scores yet</div>';
+      return;
+    }
+    
+    const scores = [];
+    snapshot.forEach(child => {
+      scores.push(child.val());
+    });
+    
+    scores.sort((a, b) => b.score - a.score);
+    
+    scores.forEach((entry, i) => {
+      const row = document.createElement("div");
+      row.className = "lb-row";
+      row.innerHTML = `<div>${i + 1}</div><div>${entry.name}</div><div>${entry.score}</div>`;
+      leaderboardList.appendChild(row);
+    });
+  }).catch(err => {
+    console.error("Error loading leaderboard:", err);
+    leaderboardList.innerHTML = '<div style="text-align: center; opacity: 0.6; padding: 20px;">failed to load</div>';
   });
 }
