@@ -306,9 +306,8 @@ function showLeaderboard() {
   leaderboardList.innerHTML = '<div style="text-align: center; opacity: 0.6; padding: 20px;">loading...</div>';
   
   const scoresRef = ref(database, 'scores');
-  const topScoresQuery = query(scoresRef, orderByChild('score'), limitToLast(10));
   
-  get(topScoresQuery).then(snapshot => {
+  get(scoresRef).then(snapshot => {
     leaderboardList.innerHTML = "";
     
     if (!snapshot.exists()) {
@@ -321,9 +320,9 @@ function showLeaderboard() {
       scores.push(child.val());
     });
     
+    // sort by score descending and take top 10
     scores.sort((a, b) => b.score - a.score);
-    
-    scores.forEach((entry, i) => {
+    scores.slice(0, 10).forEach((entry, i) => {
       const row = document.createElement("div");
       row.className = "lb-row";
       row.innerHTML = `<div>${i + 1}</div><div>${entry.name}</div><div>${entry.score}</div>`;
